@@ -26,6 +26,7 @@ void executeProgram(Parser *parser, Symtab *symtab);
 
 int main(int argc, char *argv[])
 {
+    std::cout << "Hello End\n" << std::endl;
     if (argc != 3)
     {
         cout << "Usage: simple -{scan, parse, execute} sourceFileName" << endl;

@@ -132,12 +132,13 @@ Token *Token::SpecialSymbol(char firstChar, Source *source)
         case ':' :
         {
             char nextChar = source->nextChar();
-            token->text += nextChar;
+            
 
             // Is it the := symbol?
             if (nextChar == '=')
             {
                 token->type = TokenType::COLON_EQUALS;
+                token->text += nextChar;
             }
 
             // No, it's just the : symbol.
