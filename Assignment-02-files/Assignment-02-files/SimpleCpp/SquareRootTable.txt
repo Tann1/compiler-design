@@ -37,4 +37,14 @@ BEGIN
         writeln;
         row := row + 1
     UNTIL row = 26;
+    ..
+    <
+    <>
+    <=
+    >
+    >=
+    `
+    [   
+    ]
+    ^
 END.
