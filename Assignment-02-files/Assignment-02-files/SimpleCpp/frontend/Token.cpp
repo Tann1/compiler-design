@@ -27,6 +27,26 @@ void Token::initialize()
     reservedWords["UNTIL"]   = UNTIL;
     reservedWords["WRITE"]   = WRITE;
     reservedWords["WRITELN"] = WRITELN;
+    reservedWords["DIV"] = DIV;
+    reservedWords["MOD"] = MOD;
+    reservedWords["AND"] = AND;
+    reservedWords["OR"] = OR;
+    reservedWords["NOT"] = NOT;
+    reservedWords["CONST"] = CONST;
+    reservedWords["TYPE"] = TYPE;
+    reservedWords["VAR"] = VAR;
+    reservedWords["PROCEDURE"] = PROCEDURE;
+    reservedWords["FUNCTION"] = FUNCTION;
+    reservedWords["WHILE"] = WHILE;
+    reservedWords["DO"] = DO;
+    reservedWords["FOR"] = FOR;
+    reservedWords["TO"] = TO;
+    reservedWords["DOWNTO"] = DOWNTO;
+    reservedWords["IF"] = IF;
+    reservedWords["THEN"] = THEN;
+    reservedWords["ELSE"] = ELSE;
+    reservedWords["CASE"] = CASE;
+    reservedWords["OF"] = OF;
 }
 
 Token *Token::Word(char firstChar, Source *source)
