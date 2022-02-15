@@ -114,17 +114,64 @@ Token *Token::String(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);  // the leading '
 
+    // variables currentChar and nextChar
+    char currentChar = source->currentChar() ;
+    char nextChar = source->nextChar() ;
+    //increment pointers to not point at currentChar: '
+    currentChar = source->currentChar() ;
+    nextChar = source->nextChar() ;
+    //count to determine if the string is a character or not
+    int count = 0 ;
+    bool endFlag = false ;
+
+    while(1) {
+        if(currentChar == '\'') { // bracket found
+
+            if(nextChar == '\'') { // double bracket condition 
+                token->text += currentChar; // take only one of the double brackets into token and increment ptrs
+                count++ ; 
+                currentChar = source->currentChar() ; // increment ptrs 
+                nextChar = source->nextChar() ;
+            } else {
+                break ; // if there isn't a second bracket the string has been completed so stop loop 
+                
+            }
+        } else if(currentChar == -1){
+            endFlag = true ;
+            break ;
+        } else {
+            token->text += currentChar;
+            count++ ;
+        }
+        currentChar = source->currentChar() ; // increment ptrs 
+        nextChar = source->nextChar() ;
+    
+    }
+ 
+
     // Loop to append the rest of the characters of the string,
     // up to but not including the closing quote.
+    
+    /*
     for (char ch = source->nextChar(); ch != '\''; ch = source->nextChar())
     {
         token->text += ch;
     }
-
+    */
+   if(endFlag) {
+       token->type = TokenType::ERROR;
+       tokenError(token, "string not closed");
+   } else {
     token->text += '\'';  // the closing quote
     source->nextChar();  // consume the closing quote
+    if(count == 1) {
+        token->type = TokenType::CHARACTER;
+    } else {
+        token->type = TokenType::STRING;
+    }
+   }
 
-    token->type = TokenType::STRING;
+    
 
     // Don't include the leading and trailing '.
     token->value.S = token->text.substr(1, token->text.length() - 2);
