@@ -34,14 +34,28 @@ public:
     Token *nextToken()
     {
         char ch = source->currentChar();
+        bool needsPair = false;
 
         // Skip blanks and other whitespace characters.
-        while (isspace(ch)) ch = source->nextChar();
+
+        //while (isspace(ch)) ch = source->nextChar();
+        #if 1
+        while (isspace(ch) || ch == '{' || needsPair) {
+            if (ch == '{')
+                needsPair = true;
+            else if (ch == '}')
+                needsPair = false;
+
+            ch = source->nextChar();
+
+        }
+        #endif
 
         if (isalpha(ch))      return Token::Word(ch, source);
         else if (isdigit(ch)) return Token::Number(ch, source);
         else if (ch == '\'')  return Token::String(ch, source);
         else                  return Token::SpecialSymbol(ch, source);
+        
     }
 };
 
