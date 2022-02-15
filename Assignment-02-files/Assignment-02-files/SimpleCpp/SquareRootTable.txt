@@ -8,6 +8,7 @@ BEGIN
     i := 0;
     REPEAT
         x := i/10;
+        x := i mod 12;
         write(x:10:1);
         i := i + 1
     UNTIL i = 10;
