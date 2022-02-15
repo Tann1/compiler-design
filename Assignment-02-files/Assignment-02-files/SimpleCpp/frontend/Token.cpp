@@ -138,16 +138,19 @@ Token *Token::SpecialSymbol(char firstChar, Source *source)
 
     switch (firstChar)
     {
-        case '.' : token->type = TokenType::PERIOD;     break;
         case ';' : token->type = TokenType::SEMICOLON;  break;
         case '+' : token->type = TokenType::PLUS;       break;
         case '-' : token->type = TokenType::MINUS;      break;
         case '*' : token->type = TokenType::STAR;       break;
         case '/' : token->type = TokenType::SLASH;      break;
         case '=' : token->type = TokenType::EQUALS;     break;
-        case '<' : token->type = TokenType::LESS_THAN;  break;
         case '(' : token->type = TokenType::LPAREN;     break;
         case ')' : token->type = TokenType::RPAREN;     break;
+        case ',' : token->type = TokenType::COMMA;      break;
+        case '`' : token->type = TokenType::BACKTICK;   break;
+        case '[' : token->type = TokenType::LBRACK;     break;
+        case ']' : token->type = TokenType::RBRACK;     break;
+        case '^' : token->type = TokenType::CARROT;     break;
 
         case ':' :
         {
@@ -170,6 +173,75 @@ Token *Token::SpecialSymbol(char firstChar, Source *source)
 
             break;
         }
+
+        case '.' : 
+        {
+            char nextChar = source -> nextChar();
+            //check if it is a double period or not
+            if (nextChar == '.')
+            {
+                token -> type = TokenType::DOUBLE_PERIOD;
+                token -> text += nextChar;
+            }
+            //meaning it is just a period
+            else
+            {
+                token->type = TokenType::PERIOD;     
+                return token;
+            }
+
+            break;
+        }
+
+        case '<' : 
+        {
+            char nextChar = source -> nextChar();
+            //Check if it is NOT EQUALS by looking for '>'
+            if(nextChar == '>')
+            {
+                token -> type = TokenType::NOT_EQUALS;
+                token -> text += nextChar;
+            }
+
+            //Check if it is LESS THAN EQUALS by looking for '='
+            else if(nextChar == '=')
+            {
+                token -> type = TokenType::LESS_THAN_EQUALS;
+                token -> text += nextChar;
+            }
+
+            //if not then it is just less than
+            else
+            {
+                token->type = TokenType::LESS_THAN;  
+                return token;
+            }
+
+            break;
+        }
+
+        case '>' :
+        {
+            char nextChar = source -> nextChar();
+
+            //check if greater than equal to by checking for '='
+            if(nextChar == '=')
+            {
+                token->type = TokenType::GREATER_THAN_EQUALS;
+                token -> text += nextChar;
+            }
+            //if not then it is just greater than
+            else
+            {
+                token->type = TokenType::GREATER_THAN;
+                return token;
+            }
+
+            break;
+        }
+
+
+        
 
         case EOF : token->type = END_OF_FILE; break;
 
