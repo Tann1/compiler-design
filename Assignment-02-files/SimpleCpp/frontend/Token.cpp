@@ -78,6 +78,7 @@ Token *Token::Word(char firstChar, Source *source)
 Token *Token::Number(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);
+    token->lineNumber = source->lineNumber();
     int pointCount = 0;
 
     // Loop to get the rest of the characters of the number token.
@@ -113,7 +114,7 @@ Token *Token::Number(char firstChar, Source *source)
 Token *Token::String(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);  // the leading '
-
+    token->lineNumber = source->lineNumber();
     // variables currentChar and nextChar
     char currentChar = source->currentChar() ;
     char nextChar = source->nextChar() ;
@@ -182,6 +183,7 @@ Token *Token::String(char firstChar, Source *source)
 Token *Token::SpecialSymbol(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);
+    token->lineNumber = source->lineNumber();
 
     switch (firstChar)
     {
