@@ -11,7 +11,7 @@ git branch
 - If you upload your local branch to remote make sure to delete after merging into main
 - DO NOT UPLOAD ANY EXECUTABLE FILES. (I WILL TILT OFF THIS PLANET INTO OBLIVION)
 
-##Compiling Code
+## Compiling Code
 I've made very simple makefile for us to ease up compilation typing time.
 ASSUMING you're using a linux like environment simple type to compile the program.
 ```
@@ -23,9 +23,16 @@ make clean
 ```
 
 ## Assignment02 status: DONE
+#### TASKS
+- [x] Add requested reserved words
+- [x] Add requested special symbols
+- [x] Add requested misc tokens (IDENTIFIER STRING ERROR etc)
+- [x] Appropriately ignore comments
+- [x] show proper line errors for the respective token error
+- [x] run ScannerTest.txt and verify output
 
 ## Assignment03 status: PENDING
-#### TASK
+#### TASKS
 - [x] Add WHILE to parser
 - [ ] Add IF to parser
 - [ ] Add FOR to parser
