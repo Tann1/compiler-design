@@ -53,7 +53,7 @@ public:
 
         if (isalpha(ch))      return Token::Word(ch, source);
         else if (isdigit(ch)) return Token::Number(ch, source);
-        else if (ch == '\'')  return Token::String(ch, source);
+        else if (ch == '\'')  return Token::Character_or_String(ch, source);
         else                  return Token::SpecialSymbol(ch, source);
         
     }

@@ -253,6 +253,8 @@ void Parser::parseWriteArguments(Node *node)
         node->adopt(parseStringConstant());
         hasArgument = true;
     }
+    else if (currentToken->type == CHARACTER)
+        node->adopt(parseCharacterConstant());
     else syntaxError("Invalid WRITE or WRITELN statement");
 
     // Look for a field width and a count of decimal places.
@@ -449,6 +451,15 @@ Node *Parser::parseStringConstant()
 
     currentToken = scanner->nextToken();  // consume the string
     return stringNode;
+}
+
+Node *Parser::parseCharacterConstant()
+{
+    Node * characterNode = new Node(CHARACTER_CONSTANT);
+    characterNode->value = currentToken->value;
+
+    currentToken = scanner->nextToken(); //consume the character
+    return characterNode;
 }
 
 void Parser::syntaxError(string message)

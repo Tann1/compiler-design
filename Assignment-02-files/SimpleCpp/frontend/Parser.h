@@ -64,6 +64,7 @@ private:
     Node *parseIntegerConstant();
     Node *parseRealConstant();
     Node *parseStringConstant();
+    Node *parseCharacterConstant();
 
     void parseStatementList(Node *parentNode, TokenType terminalType);
     void parseWriteArguments(Node *node);

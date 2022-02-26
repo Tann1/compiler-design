@@ -14,7 +14,7 @@ namespace intermediate {
 
 using namespace std;
 
-const string ParseTreePrinter::INDENT_SIZE = "    ";
+const string ParseTreePrinter::INDENT_SIZE = "      ";
 
 void ParseTreePrinter::print(Node *node)
 {
@@ -23,12 +23,12 @@ void ParseTreePrinter::print(Node *node)
     line += "<" + NODE_TYPE_STRINGS[(int) node->type];
 
     // Attributes.
-    if      (node->type == PROGRAM)          line += " " + node->text;
-    else if (node->type == VARIABLE)         line += " " + node->text;
-    else if (node->type == INTEGER_CONSTANT) line += " " + to_string(node->value.L);
-    else if (node->type == REAL_CONSTANT)    line += " " + to_string(node->value.D);
-    else if (node->type == STRING_CONSTANT)  line += " '" + node->value.S + "'";
-    if (node->lineNumber > 0)                line += " line " + to_string(node->lineNumber);
+    if      (node->type == PROGRAM)                                              line += " " + node->text;
+    else if (node->type == VARIABLE)                                             line += " " + node->text;
+    else if (node->type == INTEGER_CONSTANT)                                     line += " " + to_string(node->value.L);
+    else if (node->type == REAL_CONSTANT)                                        line += " " + to_string(node->value.D);
+    else if (node->type == STRING_CONSTANT || node->type == CHARACTER_CONSTANT)  line += " '" + node->value.S + "'";
+    if (node->lineNumber > 0)                                                    line += " line " + to_string(node->lineNumber);
 
     // Print the node's children followed by the closing tag.
     vector<Node *> children = node->children;
