@@ -9,6 +9,19 @@ git branch
 ```
 - Before doing a pull request verify consult with the group please.
 - If you upload your local branch to remote make sure to delete after merging into main
+- DO NOT UPLOAD ANY EXECUTABLE FILES. (I WILL TILT OFF THIS PLANET INTO OBLIVION)
+
+##Compiling Code
+I've made very simple makefile for us to ease up compilation typing time.
+ASSUMING you're using a linux like environment simple type
+```
+make
+```
+to compile the program.
+in order to remove the executable generated (must do before any commits or pushes or simply put in it in a gitignore file)
+```
+make clean
+```
 
 ## Assignment02 status: DONE
 
