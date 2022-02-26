@@ -13,12 +13,11 @@ git branch
 
 ##Compiling Code
 I've made very simple makefile for us to ease up compilation typing time.
-ASSUMING you're using a linux like environment simple type
+ASSUMING you're using a linux like environment simple type to compile the program.
 ```
 make
 ```
-to compile the program.
-in order to remove the executable generated (must do before any commits or pushes or simply put in it in a gitignore file)
+In order to remove the executable generated (must do before any commits or pushes or simply put in it in a gitignore file)
 ```
 make clean
 ```
