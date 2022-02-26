@@ -1,5 +1,9 @@
 # compiler-design 
 
+SJSU College students taking CMPE152 in spring of 2022 together.
+We're using github as a collaborative tool for this project based class. 
+Group Members: Kcirde Santos, George Dominise, Syed Quadri, and Tanishq Gadkari
+
 ## Basic git stuff to follow
 - please make sure to work in your local branch after pulling from main
 ```
