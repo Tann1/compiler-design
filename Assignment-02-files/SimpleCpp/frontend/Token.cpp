@@ -78,6 +78,7 @@ Token *Token::Word(char firstChar, Source *source)
 Token *Token::Number(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);
+    token->lineNumber = source->lineNumber();
     int pointCount = 0;
 
     // Loop to get the rest of the characters of the number token.
@@ -113,6 +114,41 @@ Token *Token::Number(char firstChar, Source *source)
 Token *Token::String(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);  // the leading '
+    token->lineNumber = source->lineNumber();
+    // variables currentChar and nextChar
+    char currentChar = source->currentChar() ;
+    char nextChar = source->nextChar() ;
+    //increment pointers to not point at currentChar: '
+    currentChar = source->currentChar() ;
+    nextChar = source->nextChar() ;
+    //count to determine if the string is a character or not
+    int count = 0 ;
+    bool endFlag = false ;
+
+    while(1) {
+        if(currentChar == '\'') { // bracket found
+
+            if(nextChar == '\'') { // double bracket condition 
+                token->text += currentChar; // take only one of the double brackets into token and increment ptrs
+                count++ ; 
+                currentChar = source->currentChar() ; // increment ptrs 
+                nextChar = source->nextChar() ;
+            } else {
+                break ; // if there isn't a second bracket the string has been completed so stop loop 
+                
+            }
+        } else if(currentChar == -1){
+            endFlag = true ;
+            break ;
+        } else {
+            token->text += currentChar;
+            count++ ;
+        }
+        currentChar = source->currentChar() ; // increment ptrs 
+        nextChar = source->nextChar() ;
+    
+    }
+ 
 
     // variables currentChar and nextChar
     char currentChar = source->currentChar() ;
@@ -182,6 +218,7 @@ Token *Token::String(char firstChar, Source *source)
 Token *Token::SpecialSymbol(char firstChar, Source *source)
 {
     Token *token = new Token(firstChar);
+    token->lineNumber = source->lineNumber();
 
     switch (firstChar)
     {
