@@ -12,7 +12,7 @@ git branch
 - DO NOT UPLOAD ANY EXECUTABLE FILES. (I WILL TILT OFF THIS PLANET INTO OBLIVION)
 
 ## Compiling Code
-I've made very simple makefile for us to ease up compilation typing time.
+I've made a very simple makefile for us to ease up compilation typing time.
 ASSUMING you're using a linux like environment simple type to compile the program.
 ```
 make
