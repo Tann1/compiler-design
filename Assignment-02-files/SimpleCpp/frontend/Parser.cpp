@@ -23,25 +23,33 @@ set<TokenType> Parser::termOperators;
 
 void Parser::initialize()
 {
-    statementStarters.insert(BEGIN);
-    statementStarters.insert(IDENTIFIER);
-    statementStarters.insert(REPEAT);
+    statementStarters.insert(TokenType::BEGIN);
+    statementStarters.insert(TokenType::IDENTIFIER);
+    statementStarters.insert(TokenType::REPEAT);
+    statementStarters.insert(TokenType::WHILE);                 //assignment 3 extension
     statementStarters.insert(TokenType::WRITE);
     statementStarters.insert(TokenType::WRITELN);
 
-    statementFollowers.insert(SEMICOLON);
-    statementFollowers.insert(END);
-    statementFollowers.insert(UNTIL);
-    statementFollowers.insert(END_OF_FILE);
+    statementFollowers.insert(TokenType::SEMICOLON);
+    statementFollowers.insert(TokenType::END);
+    statementFollowers.insert(TokenType::UNTIL);
+    statementFollowers.insert(TokenType::END_OF_FILE);
+    statementFollowers.insert(TokenType::DO);                   //assignment 3 extension
 
-    relationalOperators.insert(EQUALS);
-    relationalOperators.insert(LESS_THAN);
+    relationalOperators.insert(TokenType::EQUALS);
+    relationalOperators.insert(TokenType::NOT_EQUALS);          //assignment 3 extension
+    relationalOperators.insert(TokenType::LESS_THAN);
+    relationalOperators.insert(TokenType::LESS_THAN_EQUALS);    //assignment 3 extension
+    relationalOperators.insert(TokenType::GREATER_THAN);        //assignment 3 extension
+    relationalOperators.insert(TokenType::GREATER_THAN_EQUALS); //assignment 3 extension
 
-    simpleExpressionOperators.insert(PLUS);
-    simpleExpressionOperators.insert(MINUS);
 
-    termOperators.insert(STAR);
-    termOperators.insert(SLASH);
+    simpleExpressionOperators.insert(TokenType::PLUS);
+    simpleExpressionOperators.insert(TokenType::MINUS);
+    
+
+    termOperators.insert(TokenType::STAR);
+    termOperators.insert(TokenType::SLASH);
 }
 
 Node *Parser::parseProgram()
@@ -79,58 +87,6 @@ Node *Parser::parseProgram()
 
     if (currentToken->type == SEMICOLON) syntaxError("Expecting .");
     return programNode;
-}
-
-Node *Parser::parseStatement()
-{
-    Node *stmtNode = nullptr;
-    int savedLineNumber = currentToken->lineNumber;
-    lineNumber = savedLineNumber;
-
-    switch (currentToken->type)
-    {
-        case IDENTIFIER : stmtNode = parseAssignmentStatement(); break;
-        case BEGIN :      stmtNode = parseCompoundStatement();   break;
-        case REPEAT :     stmtNode = parseRepeatStatement();     break;
-        case WRITE :      stmtNode = parseWriteStatement();      break;
-        case WRITELN :    stmtNode = parseWritelnStatement();    break;
-        case SEMICOLON :  stmtNode = nullptr; break;  // empty statement
-
-        default : syntaxError("Unexpected token");
-    }
-
-    if (stmtNode != nullptr) stmtNode->lineNumber = savedLineNumber;
-    return stmtNode;
-}
-
-Node *Parser::parseAssignmentStatement()
-{
-    // The current token should now be the left-hand-side variable name.
-
-    Node *assignmentNode = new Node(ASSIGN);
-
-    // The assignment Node *adopts the variable Node *as its first child.
-    Node *lhsNode = new Node(VARIABLE);
-    string variableName = currentToken->text;
-    SymtabEntry *variableId = symtab->enter(toLowerCase(variableName));
-
-    lhsNode->text  = variableName;
-    lhsNode->entry = variableId;
-    assignmentNode->adopt(lhsNode);
-
-    currentToken = scanner->nextToken();  // consume the LHS variable;
-
-    if (currentToken->type == COLON_EQUALS)
-    {
-        currentToken = scanner->nextToken();  // consume :=
-    }
-    else syntaxError("Missing :=");
-
-    // The assignment Node *adopts the expression Node *as its second child.
-    Node *rhsNode = parseExpression();
-    assignmentNode->adopt(rhsNode);
-
-    return assignmentNode;
 }
 
 Node *Parser::parseCompoundStatement()
@@ -174,6 +130,62 @@ void Parser::parseStatementList(Node *parentNode, TokenType terminalType)
     }
 }
 
+Node *Parser::parseStatement()
+{
+    Node *stmtNode = nullptr;
+    int savedLineNumber = currentToken->lineNumber;
+    lineNumber = savedLineNumber;
+
+    switch (currentToken->type)
+    {
+        case IDENTIFIER : stmtNode = parseAssignmentStatement(); break;
+        case BEGIN      : stmtNode = parseCompoundStatement();   break;
+        case REPEAT     : stmtNode = parseRepeatStatement();     break;
+        case WHILE      : stmtNode = parseWhileStatement();      break;
+        case WRITE      : stmtNode = parseWriteStatement();      break;
+        case WRITELN    : stmtNode = parseWritelnStatement();    break;
+        case SEMICOLON  : stmtNode = nullptr; break;  // empty statement
+
+        default : syntaxError("Unexpected token");
+    }
+
+    if (stmtNode != nullptr) stmtNode->lineNumber = savedLineNumber;
+    return stmtNode;
+}
+
+Node *Parser::parseAssignmentStatement()
+{
+    // The current token should now be the left-hand-side variable name.
+
+    Node *assignmentNode = new Node(ASSIGN);
+
+    // The assignment Node *adopts the variable Node *as its first child.
+    Node *lhsNode = new Node(VARIABLE);
+    string variableName = currentToken->text;
+    SymtabEntry *variableId = symtab->enter(toLowerCase(variableName));
+
+    lhsNode->text  = variableName;
+    lhsNode->entry = variableId;
+    assignmentNode->adopt(lhsNode);
+
+    currentToken = scanner->nextToken();  // consume the LHS variable;
+
+    if (currentToken->type == COLON_EQUALS)
+    {
+        currentToken = scanner->nextToken();  // consume :=
+    }
+    else syntaxError("Missing :=");
+
+    // The assignment Node *adopts the expression Node *as its second child.
+    Node *rhsNode = parseExpression();
+    assignmentNode->adopt(rhsNode);
+
+    return assignmentNode;
+}
+
+
+
+
 Node *Parser::parseRepeatStatement()
 {
     // The current token should now be REPEAT.
@@ -199,6 +211,29 @@ Node *Parser::parseRepeatStatement()
     }
     else syntaxError("Expecting UNTIL");
 
+    return loopNode;
+}
+
+Node *Parser::parseWhileStatement(){
+    Node *loopNode = new Node(LOOP);
+    currentToken = scanner->nextToken(); // consume WHILE
+
+    Node *testNode = new Node(TEST);
+    lineNumber = currentToken->lineNumber;
+    testNode->lineNumber = lineNumber;
+    testNode->adopt(parseExpression());
+    loopNode->adopt(testNode);
+
+    if (currentToken->type == DO)
+        currentToken = scanner->nextToken(); // just consume DO not much else to do ahah get it pun intended lol
+    else
+        syntaxError("Expecting DO");
+    
+    if (currentToken->type == BEGIN) 
+        loopNode->adopt(parseCompoundStatement());
+    else //meaning only single statement then
+        loopNode->adopt(parseStatement()); 
+    
     return loopNode;
 }
 
@@ -304,8 +339,12 @@ Node *Parser::parseExpression()
     {
         TokenType tokenType = currentToken->type;
         Node *opNode = tokenType == EQUALS    ? new Node(EQ)
-                    : tokenType == LESS_THAN ? new Node(LT)
-                    :                          nullptr;
+                     : tokenType == NOT_EQUALS ? new Node(NEQ)              //assignment 3 extension
+                     : tokenType == LESS_THAN ? new Node(LT)
+                     : tokenType == LESS_THAN_EQUALS ? new Node(LTEQ)       //assignment 3 extension
+                     : tokenType == GREATER_THAN ? new Node(GT)             //assignment 3 extension
+                     : tokenType == GREATER_THAN_EQUALS ? new Node(GTEQ)    //assignment 3 extension
+                     :              nullptr;
 
         currentToken = scanner->nextToken();  // consume relational operator
 
