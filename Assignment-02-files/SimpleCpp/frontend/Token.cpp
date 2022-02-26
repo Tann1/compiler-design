@@ -115,6 +115,7 @@ Token *Token::Character_or_String(char firstChar, Source *source) //professor's 
 {
     Token *token = new Token(firstChar);  // the leading '
     token->lineNumber = source->lineNumber();
+
     int length = 0;                       // string length
 
     // Loop to append the rest of the characters of the string,
