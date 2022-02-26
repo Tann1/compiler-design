@@ -50,10 +50,11 @@ public:
     Node *parseProgram();
 
 private:
+    Node *parseCompoundStatement();
     Node *parseStatement();
     Node *parseAssignmentStatement();
-    Node *parseCompoundStatement();
     Node *parseRepeatStatement();
+    Node *parseWhileStatement();            //assignment 3 extentsion
     Node *parseWriteStatement();
     Node *parseWritelnStatement();
     Node *parseExpression();
@@ -64,6 +65,7 @@ private:
     Node *parseIntegerConstant();
     Node *parseRealConstant();
     Node *parseStringConstant();
+    Node *parseCharacterConstant();
 
     void parseStatementList(Node *parentNode, TokenType terminalType);
     void parseWriteArguments(Node *node);

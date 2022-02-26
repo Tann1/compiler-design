@@ -100,6 +100,7 @@ constexpr TokenType IDENTIFIER          = TokenType::IDENTIFIER;
 constexpr TokenType INTEGER             = TokenType::INTEGER;
 constexpr TokenType REAL                = TokenType::REAL;
 constexpr TokenType STRING              = TokenType::STRING;
+constexpr TokenType CHARACTER           = TokenType::CHARACTER;
 constexpr TokenType END_OF_FILE         = TokenType::END_OF_FILE;
 constexpr TokenType ERROR               = TokenType::ERROR;
 
@@ -153,7 +154,7 @@ public:
      * @param source the input source.
      * @return the string token.
      */
-    static Token *String(char firstChar, Source *source);
+    static Token *Character_or_String(char firstChar, Source *source);
 
     /**
      * Construct a special symbol token and set its value.
