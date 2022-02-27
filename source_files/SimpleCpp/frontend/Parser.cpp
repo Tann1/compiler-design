@@ -138,12 +138,13 @@ Node *Parser::parseStatement()
 
     switch (currentToken->type)
     {
-        case IDENTIFIER : stmtNode = parseAssignmentStatement(); break;
-        case BEGIN      : stmtNode = parseCompoundStatement();   break;
-        case REPEAT     : stmtNode = parseRepeatStatement();     break;
-        case WHILE      : stmtNode = parseWhileStatement();      break;
-        case WRITE      : stmtNode = parseWriteStatement();      break;
-        case WRITELN    : stmtNode = parseWritelnStatement();    break;
+        case IDENTIFIER : stmtNode = parseAssignmentStatement();    break;
+        case BEGIN      : stmtNode = parseCompoundStatement();      break;
+        case REPEAT     : stmtNode = parseRepeatStatement();        break;
+        case WHILE      : stmtNode = parseWhileStatement();         break;     //assignment 3 extension
+        case IF         : stmtNode = parseConditionalStatement();   break;     //assignment 3 extension
+        case WRITE      : stmtNode = parseWriteStatement();         break;
+        case WRITELN    : stmtNode = parseWritelnStatement();       break;
         case SEMICOLON  : stmtNode = nullptr; break;  // empty statement
 
         default : syntaxError("Unexpected token");
@@ -325,6 +326,62 @@ void Parser::parseWriteArguments(Node *node)
         currentToken = scanner->nextToken();  // consume )
     }
     else syntaxError("Missing right parenthesis");
+}
+
+// #TODO
+Node *Parser::parseConditionalStatement() { //assignment 3 extension
+    Node* conditionalNode = new Node(CONDITIONAL);
+    
+    conditionalNode->adopt(parseIf());
+    if (currentToken->type == ELSE)
+        conditionalNode->adopt(parseElse());
+    
+    return conditionalNode;
+}
+
+Node *Parser::parseIf() {
+    Node *ifNode = new Node(_IF); //NodeType IF not TokenType
+    ifNode->lineNumber = currentToken->lineNumber;
+    if (currentToken->type == IF)
+        currentToken = scanner->nextToken(); //consume IF
+    else
+        syntaxError("Expecting IF");
+
+
+    Node *testNode = new Node(TEST);
+    lineNumber = currentToken->lineNumber;
+    testNode->lineNumber = lineNumber;
+    testNode->adopt(parseExpression());
+    ifNode->adopt(testNode);
+
+    if (currentToken->type == THEN) {
+        currentToken = scanner->nextToken(); //consume THEN
+        if (currentToken->type == IF)
+            ifNode->adopt(parseConditionalStatement());
+    }
+    else
+        syntaxError("Expecting THEN");
+    
+    if (currentToken->type == BEGIN)
+        ifNode->adopt(parseCompoundStatement());
+    else
+        ifNode->adopt(parseStatement());
+    return ifNode;
+}
+
+
+Node *Parser::parseElse() {
+    Node *elseNode = new Node(NodeType::ELSE);
+    elseNode->lineNumber = currentToken->lineNumber;
+    currentToken = scanner->nextToken(); // consume ELSE
+
+    if (currentToken->type == BEGIN)
+        elseNode->adopt(parseCompoundStatement());
+    else
+        elseNode->adopt(parseStatement());
+
+    return elseNode;
+
 }
 
 Node *Parser::parseExpression()

@@ -23,5 +23,7 @@ begin
     while i <= 5 do i := i + 1;
 
     writeln(i);
-    
- end.
+
+    if i = 1 then  if i = 1 then i := 2;
+
+  END.  

@@ -57,6 +57,9 @@ private:
     Node *parseWhileStatement();            //assignment 3 extentsion
     Node *parseWriteStatement();
     Node *parseWritelnStatement();
+    Node *parseConditionalStatement();      //assignment 3 extentsion #TODO
+    Node *parseIf();                        //assignment 3 extension
+    Node *parseElse();                      //assignment 3 extension
     Node *parseExpression();
     Node *parseSimpleExpression();
     Node *parseTerm();

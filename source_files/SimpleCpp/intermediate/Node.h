@@ -20,7 +20,8 @@ using namespace std;
 
 enum class NodeType
 {
-    PROGRAM, COMPOUND, ASSIGN, LOOP, TEST, WRITE, WRITELN,
+    PROGRAM, COMPOUND, ASSIGN, LOOP, TEST, CONDITIONAL,
+    IF, ELSE_IF, ELSE, WRITE, WRITELN,
     ADD, SUBTRACT, MULTIPLY, DIVIDE, EQ, NEQ, LT, LTEQ, GT, GTEQ,
     VARIABLE, INTEGER_CONSTANT, REAL_CONSTANT, STRING_CONSTANT,
     CHARACTER_CONSTANT
@@ -28,7 +29,8 @@ enum class NodeType
 
 static const string NODE_TYPE_STRINGS[] =
 {
-    "PROGRAM", "COMPOUND", "ASSIGN", "LOOP", "TEST", "WRITE", "WRITELN",
+    "PROGRAM", "COMPOUND", "ASSIGN", "LOOP", "TEST", "CONDTIONAL", 
+    "IF","ELSE_IF", "ELSE", "WRITE", "WRITELN",
     "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EQ", "NEQ", "LT", "LTEQ", "GT", "GTEQ",
     "VARIABLE", "INTEGER_CONSTANT", "REAL_CONSTANT", "STRING_CONSTANT",
     "CHARACTER_CONSTANT"
@@ -39,6 +41,10 @@ constexpr NodeType COMPOUND           = NodeType::COMPOUND;
 constexpr NodeType ASSIGN             = NodeType::ASSIGN;
 constexpr NodeType LOOP               = NodeType::LOOP;
 constexpr NodeType TEST               = NodeType::TEST;
+constexpr NodeType CONDITIONAL        = NodeType::CONDITIONAL;          //assignment 3 extension
+constexpr NodeType _IF                = NodeType::IF;
+constexpr NodeType ELSE_IF            = NodeType::ELSE_IF;
+constexpr NodeType _ELSE              = NodeType::ELSE;
 constexpr NodeType WRITE              = NodeType::WRITE;
 constexpr NodeType WRITELN            = NodeType::WRITELN;
 constexpr NodeType ADD                = NodeType::ADD;

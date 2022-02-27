@@ -1,0 +1,7 @@
+program personalTest;
+BEGIN
+    i := 3;
+    j := 4;
+    if i = 3 then i := 3 else i := 4
+
+END.
