@@ -42,3 +42,4 @@ make clean
 - [ ] Add FOR to parser
 - [ ] Add CASE to parser
 - [ ] Implement the simple executor for above functionalities
+- [X] Add WHILE executor
