@@ -22,6 +22,7 @@ using namespace intermediate;
 
 set<NodeType> Executor::singletons;
 set<NodeType> Executor::relationals;
+set<NodeType> Executor::booleans;
 
 void Executor::initialize()
 {
@@ -31,7 +32,16 @@ void Executor::initialize()
     singletons.insert(STRING_CONSTANT);
 
     relationals.insert(EQ);
+    relationals.insert(NEQ);
     relationals.insert(LT);
+    relationals.insert(LTEQ);
+    relationals.insert(GT);
+    relationals.insert(GTEQ);
+
+    booleans.insert(NodeType::NOT);
+    booleans.insert(NodeType::AND);
+    booleans.insert(NodeType::OR);
+
 }
 
 Object Executor::visit(Node *node)
@@ -188,10 +198,29 @@ Object Executor::visitExpression(Node *expressionNode)
             default: return Object();
         }
     }
+    double value1;
+    double value2;
+    if (booleans.find(expressionNode->type) != booleans.end())
+    {
+        switch (expressionNode->type)
+        {
+            case NodeType::NOT : return !(visit(expressionNode->children[0]).B); break;
+            case NodeType::AND : 
+                value1 = visit(expressionNode->children[0]).B;
+                value2 = visit(expressionNode->children[1]).B;
+                return Object(value1 && value2); break;
+            case NodeType::OR  :
+                value1 = visit(expressionNode->children[0]).B;
+                value2 = visit(expressionNode->children[1]).B;
+                return Object(value1 || value2); break;
+            default:
+                return Object();
+        }
+    }
 
     // Binary expressions.
-    double value1 = visit(expressionNode->children[0]).D;
-    double value2 = visit(expressionNode->children[1]).D;
+    value1 = visit(expressionNode->children[0]).D;
+    value2 = visit(expressionNode->children[1]).D;
 
     // Relational expressions.
     if (relationals.find(expressionNode->type) != relationals.end())
@@ -200,8 +229,13 @@ Object Executor::visitExpression(Node *expressionNode)
 
         switch (expressionNode->type)
         {
-            case EQ : value = value1 == value2; break;
-            case LT : value = value1 <  value2; break;
+            case EQ   : value = value1 == value2; break;
+            case NEQ  : value = value1 != value2; break;
+            case LT   : value = value1 <  value2; break;
+            case LTEQ : value = value1 <= value2; break;
+            case GT   : value = value1 >  value2; break;
+            case GTEQ : value = value1 >  value2; break;
+    
 
             default : break;
         }

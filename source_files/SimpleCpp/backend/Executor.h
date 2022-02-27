@@ -40,6 +40,7 @@ public:
 private:
     static set<NodeType> singletons;   // singleton factors
     static set<NodeType> relationals;  // relational operators
+    static set<NodeType> booleans;     // booleans operators assignment 3 extension
 
     Object visitProgram(Node *programNode);
     Object visitStatement(Node *statementNode);

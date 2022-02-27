@@ -32,6 +32,7 @@ private:
     static set<TokenType> statementStarters;          // what starts a statement
     static set<TokenType> statementFollowers;         // what follows a statement
     static set<TokenType> relationalOperators;        // relational operators
+    static set<TokenType> booleanOperators;           // added for assignment 3
     static set<TokenType> simpleExpressionOperators;  // simple expression operators
     static set<TokenType> termOperators;              // term operators
 
@@ -57,9 +58,6 @@ private:
     Node *parseWhileStatement();            //assignment 3 extentsion
     Node *parseWriteStatement();
     Node *parseWritelnStatement();
-    Node *parseConditionalStatement();      //assignment 3 extentsion #TODO
-    Node *parseIf();                        //assignment 3 extension
-    Node *parseElse();                      //assignment 3 extension
     Node *parseExpression();
     Node *parseSimpleExpression();
     Node *parseTerm();

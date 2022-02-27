@@ -18,6 +18,7 @@ using namespace std;
 set<TokenType> Parser::statementStarters;
 set<TokenType> Parser::statementFollowers;
 set<TokenType> Parser::relationalOperators;
+set<TokenType> Parser::booleanOperators;
 set<TokenType> Parser::simpleExpressionOperators;
 set<TokenType> Parser::termOperators;
 
@@ -43,6 +44,9 @@ void Parser::initialize()
     relationalOperators.insert(TokenType::GREATER_THAN);        //assignment 3 extension
     relationalOperators.insert(TokenType::GREATER_THAN_EQUALS); //assignment 3 extension
 
+    booleanOperators.insert(TokenType::NOT);                    //assignment 3 extension
+    booleanOperators.insert(TokenType::AND);                    //assignment 3 extension
+    booleanOperators.insert(TokenType::OR);                     //assignment 3 extension
 
     simpleExpressionOperators.insert(TokenType::PLUS);
     simpleExpressionOperators.insert(TokenType::MINUS);
@@ -142,7 +146,6 @@ Node *Parser::parseStatement()
         case BEGIN      : stmtNode = parseCompoundStatement();      break;
         case REPEAT     : stmtNode = parseRepeatStatement();        break;
         case WHILE      : stmtNode = parseWhileStatement();         break;     //assignment 3 extension
-        case IF         : stmtNode = parseConditionalStatement();   break;     //assignment 3 extension
         case WRITE      : stmtNode = parseWriteStatement();         break;
         case WRITELN    : stmtNode = parseWritelnStatement();       break;
         case SEMICOLON  : stmtNode = nullptr; break;  // empty statement
@@ -219,10 +222,14 @@ Node *Parser::parseWhileStatement(){
     Node *loopNode = new Node(LOOP);
     currentToken = scanner->nextToken(); // consume WHILE
 
+
     Node *testNode = new Node(TEST);
     lineNumber = currentToken->lineNumber;
     testNode->lineNumber = lineNumber;
-    testNode->adopt(parseExpression());
+    
+    Node *notNode = new Node(NodeType::NOT);              //add NOT node to adjust to our executor (smarter parser)
+    notNode->adopt(parseExpression()); 
+    testNode->adopt(notNode);
     loopNode->adopt(testNode);
 
     if (currentToken->type == DO)
@@ -328,80 +335,35 @@ void Parser::parseWriteArguments(Node *node)
     else syntaxError("Missing right parenthesis");
 }
 
-// #TODO
-Node *Parser::parseConditionalStatement() { //assignment 3 extension
-    Node* conditionalNode = new Node(CONDITIONAL);
-    
-    conditionalNode->adopt(parseIf());
-    if (currentToken->type == ELSE)
-        conditionalNode->adopt(parseElse());
-    
-    return conditionalNode;
-}
-
-Node *Parser::parseIf() {
-    Node *ifNode = new Node(_IF); //NodeType IF not TokenType
-    ifNode->lineNumber = currentToken->lineNumber;
-    if (currentToken->type == IF)
-        currentToken = scanner->nextToken(); //consume IF
-    else
-        syntaxError("Expecting IF");
-
-
-    Node *testNode = new Node(TEST);
-    lineNumber = currentToken->lineNumber;
-    testNode->lineNumber = lineNumber;
-    testNode->adopt(parseExpression());
-    ifNode->adopt(testNode);
-
-    if (currentToken->type == THEN) {
-        currentToken = scanner->nextToken(); //consume THEN
-        if (currentToken->type == IF)
-            ifNode->adopt(parseConditionalStatement());
-    }
-    else
-        syntaxError("Expecting THEN");
-    
-    if (currentToken->type == BEGIN)
-        ifNode->adopt(parseCompoundStatement());
-    else
-        ifNode->adopt(parseStatement());
-    return ifNode;
-}
-
-
-Node *Parser::parseElse() {
-    Node *elseNode = new Node(NodeType::ELSE);
-    elseNode->lineNumber = currentToken->lineNumber;
-    currentToken = scanner->nextToken(); // consume ELSE
-
-    if (currentToken->type == BEGIN)
-        elseNode->adopt(parseCompoundStatement());
-    else
-        elseNode->adopt(parseStatement());
-
-    return elseNode;
-
-}
 
 Node *Parser::parseExpression()
 {
     // The current token should now be an identifier or a number.
-
+    TokenType tokenType;
     // The expression's root node->
-    Node *exprNode = parseSimpleExpression();
+    Node* notNode = nullptr;
+
+    //if there's an boolean operator {NOT, AND, OR}
+    if (currentToken->type == TokenType::NOT) {
+        notNode = new Node(NodeType::NOT);
+        currentToken = scanner->nextToken(); //consume NOT
+    }
+    Node* exprNode = parseSimpleExpression();
 
     // The current token might now be a relational operator.
-    if (relationalOperators.find(currentToken->type) != relationalOperators.end())
+    if (relationalOperators.find(currentToken->type) != relationalOperators.end()
+    || booleanOperators.find(currentToken->type) != booleanOperators.end())
     {
-        TokenType tokenType = currentToken->type;
+        tokenType = currentToken->type;
         Node *opNode = tokenType == EQUALS    ? new Node(EQ)
                      : tokenType == NOT_EQUALS ? new Node(NEQ)              //assignment 3 extension
                      : tokenType == LESS_THAN ? new Node(LT)
                      : tokenType == LESS_THAN_EQUALS ? new Node(LTEQ)       //assignment 3 extension
                      : tokenType == GREATER_THAN ? new Node(GT)             //assignment 3 extension
                      : tokenType == GREATER_THAN_EQUALS ? new Node(GTEQ)    //assignment 3 extension
-                     :              nullptr;
+                     : tokenType == AND ? new Node(NodeType::AND)           //assignment 3 extension
+                     : tokenType == OR ? new Node(NodeType::OR)             //assignment 3 extension
+                     :             nullptr;
 
         currentToken = scanner->nextToken();  // consume relational operator
 
@@ -414,7 +376,15 @@ Node *Parser::parseExpression()
             opNode->adopt(parseSimpleExpression());
             exprNode = opNode;
         }
+        
     }
+
+    if (notNode != nullptr) {
+        notNode->adopt(exprNode);
+        exprNode = notNode;
+    }
+
+
 
     return exprNode;
 }

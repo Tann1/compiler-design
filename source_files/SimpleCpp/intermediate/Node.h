@@ -17,22 +17,19 @@
 namespace intermediate {
 
 using namespace std;
-
 enum class NodeType
 {
-    PROGRAM, COMPOUND, ASSIGN, LOOP, TEST, CONDITIONAL,
-    IF, ELSE_IF, ELSE, WRITE, WRITELN,
+    PROGRAM, COMPOUND, ASSIGN, LOOP, TEST, IF, WRITE, WRITELN,
     ADD, SUBTRACT, MULTIPLY, DIVIDE, EQ, NEQ, LT, LTEQ, GT, GTEQ,
-    VARIABLE, INTEGER_CONSTANT, REAL_CONSTANT, STRING_CONSTANT,
+    NOT, AND, OR, VARIABLE, INTEGER_CONSTANT, REAL_CONSTANT, STRING_CONSTANT,
     CHARACTER_CONSTANT
 };
 
 static const string NODE_TYPE_STRINGS[] =
 {
-    "PROGRAM", "COMPOUND", "ASSIGN", "LOOP", "TEST", "CONDTIONAL", 
-    "IF","ELSE_IF", "ELSE", "WRITE", "WRITELN",
+    "PROGRAM", "COMPOUND", "ASSIGN", "LOOP", "TEST", "IF", "WRITE", "WRITELN",
     "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EQ", "NEQ", "LT", "LTEQ", "GT", "GTEQ",
-    "VARIABLE", "INTEGER_CONSTANT", "REAL_CONSTANT", "STRING_CONSTANT",
+    "NOT", "AND", "OR", "VARIABLE", "INTEGER_CONSTANT", "REAL_CONSTANT", "STRING_CONSTANT",
     "CHARACTER_CONSTANT"
 };
 
@@ -41,10 +38,7 @@ constexpr NodeType COMPOUND           = NodeType::COMPOUND;
 constexpr NodeType ASSIGN             = NodeType::ASSIGN;
 constexpr NodeType LOOP               = NodeType::LOOP;
 constexpr NodeType TEST               = NodeType::TEST;
-constexpr NodeType CONDITIONAL        = NodeType::CONDITIONAL;          //assignment 3 extension
 constexpr NodeType _IF                = NodeType::IF;
-constexpr NodeType ELSE_IF            = NodeType::ELSE_IF;
-constexpr NodeType _ELSE              = NodeType::ELSE;
 constexpr NodeType WRITE              = NodeType::WRITE;
 constexpr NodeType WRITELN            = NodeType::WRITELN;
 constexpr NodeType ADD                = NodeType::ADD;
@@ -57,6 +51,9 @@ constexpr NodeType LT                 = NodeType::LT;
 constexpr NodeType LTEQ               = NodeType::LTEQ;                 //assignment 3 extension
 constexpr NodeType GT                 = NodeType::GT;                   //assignment 3 extension
 constexpr NodeType GTEQ               = NodeType::GTEQ;                 //assignment 3 extension
+constexpr NodeType NOT                = NodeType::NOT;
+constexpr NodeType AND                = NodeType::AND;
+constexpr NodeType OR                 = NodeType::OR;
 constexpr NodeType VARIABLE           = NodeType::VARIABLE;
 constexpr NodeType INTEGER_CONSTANT   = NodeType::INTEGER_CONSTANT;
 constexpr NodeType REAL_CONSTANT      = NodeType::REAL_CONSTANT;
