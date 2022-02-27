@@ -146,6 +146,7 @@ Node *Parser::parseStatement()
         case BEGIN      : stmtNode = parseCompoundStatement();      break;
         case REPEAT     : stmtNode = parseRepeatStatement();        break;
         case WHILE      : stmtNode = parseWhileStatement();         break;     //assignment 3 extension
+        case IF         : stmtNode = parseIfStatement();            break;     //assignment 3 extension
         case WRITE      : stmtNode = parseWriteStatement();         break;
         case WRITELN    : stmtNode = parseWritelnStatement();       break;
         case SEMICOLON  : stmtNode = nullptr; break;  // empty statement
@@ -243,6 +244,36 @@ Node *Parser::parseWhileStatement(){
         loopNode->adopt(parseStatement()); 
     
     return loopNode;
+}
+
+Node *Parser::parseIfStatement() {
+    
+    Node* ifNode = new Node(NodeType::IF);
+    lineNumber = currentToken->lineNumber;
+    currentToken = scanner->nextToken(); //consume IF
+
+    ifNode->adopt(parseExpression()); //adopt condition
+
+    if (currentToken->type == THEN)
+        currentToken = scanner->nextToken(); //consume THEN
+    else
+        syntaxError("Expecting THEN");
+    
+    if (currentToken->type == BEGIN)
+        ifNode->adopt(parseCompoundStatement());
+    else //must be oneline statement
+        ifNode->adopt(parseStatement());
+    
+    if (currentToken->type == ELSE) 
+    {
+        currentToken = scanner->nextToken(); //consume ELSE
+         if (currentToken->type == BEGIN)
+            ifNode->adopt(parseCompoundStatement());
+        else //must be oneline statement
+            ifNode->adopt(parseStatement());
+    }
+
+    return ifNode;
 }
 
 Node *Parser::parseWriteStatement()

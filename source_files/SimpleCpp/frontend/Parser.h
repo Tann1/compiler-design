@@ -56,6 +56,7 @@ private:
     Node *parseAssignmentStatement();
     Node *parseRepeatStatement();
     Node *parseWhileStatement();            //assignment 3 extentsion
+    Node *parseIfStatement();
     Node *parseWriteStatement();
     Node *parseWritelnStatement();
     Node *parseExpression();
