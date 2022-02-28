@@ -36,6 +36,7 @@ void Parser::initialize()
     statementFollowers.insert(TokenType::UNTIL);
     statementFollowers.insert(TokenType::END_OF_FILE);
     statementFollowers.insert(TokenType::DO);                   //assignment 3 extension
+    statementFollowers.insert(TokenType::OF);                   //assignment 3 extension
 
     relationalOperators.insert(TokenType::EQUALS);
     relationalOperators.insert(TokenType::NOT_EQUALS);          //assignment 3 extension
@@ -147,6 +148,7 @@ Node *Parser::parseStatement()
         case REPEAT     : stmtNode = parseRepeatStatement();        break;
         case WHILE      : stmtNode = parseWhileStatement();         break;     //assignment 3 extension
         case IF         : stmtNode = parseIfStatement();            break;     //assignment 3 extension
+        case FOR        : stmtNode = parseForStatement();           break;     //assignment 3 extension
         case WRITE      : stmtNode = parseWriteStatement();         break;
         case WRITELN    : stmtNode = parseWritelnStatement();       break;
         case SEMICOLON  : stmtNode = nullptr; break;  // empty statement
@@ -187,9 +189,6 @@ Node *Parser::parseAssignmentStatement()
 
     return assignmentNode;
 }
-
-
-
 
 Node *Parser::parseRepeatStatement()
 {
@@ -246,8 +245,94 @@ Node *Parser::parseWhileStatement(){
     return loopNode;
 }
 
+Node *Parser::parseForStatement() {
+    Node *compoundNode = new Node(COMPOUND);
+
+    Node *newValue = new Node(INTEGER_CONSTANT);
+
+    SymtabEntry *a;
+    Node *oldVariable = new Node(VARIABLE);
+    if(currentToken -> type == FOR)
+    {
+        currentToken = scanner -> nextToken(); //consume For
+        //store old variables since FOR statement needs to keep track
+        oldVariable -> value = currentToken -> value;
+        string variableName = toLowerCase(currentToken -> text);
+        oldVariable -> text = currentToken -> text;
+
+        compoundNode -> adopt(parseAssignmentStatement());
+        a = symtab -> lookup(variableName);
+        oldVariable -> entry = a;
+    }
+
+    else{
+        syntaxError("Expecting FOR");
+    }
+
+    if(currentToken -> type == TO || currentToken -> type == DOWNTO)
+    {
+        Node *gtltNode; //Node creation for greater than less than
+        if(currentToken -> type == TO)
+        {
+            gtltNode = new Node(GT);
+        }
+        else
+        {
+            gtltNode = new Node(LT);
+
+        }
+
+        Node *addNode; //case for addition and subtraction
+        if(currentToken -> type == TO)
+        {
+            addNode = new Node(ADD);
+        }
+        else
+        {
+            addNode = new Node(SUBTRACT);
+        }
+
+        currentToken = scanner -> nextToken(); //consumes To/Downto
+
+        newValue -> value = currentToken -> value;
+        currentToken = scanner -> nextToken();
+
+        gtltNode -> adopt(oldVariable);
+        gtltNode -> adopt(newValue);
+
+        Node *testNode = new Node(TEST); //test Node
+        testNode -> adopt(gtltNode);
+
+        Node *loopNode = new Node(LOOP); //create loop in parse tree
+        loopNode -> adopt(testNode); //adopt the left hand side of tree
+
+        currentToken = scanner -> nextToken();
+        
+        loopNode -> adopt(parseStatement()); //adopt middle part of tree (do statement)
+
+        addNode -> adopt(oldVariable);
+
+        int constant = 1;
+        Node *Constant = new Node(INTEGER_CONSTANT);
+        Constant -> value.D = constant;
+        addNode -> adopt(Constant);
+
+        Node *assignNode = new Node(ASSIGN);
+        compoundNode -> adopt(loopNode); //adopt the loop to the right side of tree
+        assignNode -> adopt(oldVariable);
+        loopNode -> adopt(assignNode);
+        assignNode -> adopt(addNode);
+    }
+    else
+    {
+        syntaxError("Expecting TO/DOWNTO");
+    }
+
+    return compoundNode;
+}
+
 Node *Parser::parseIfStatement() {
-    
+
     Node* ifNode = new Node(NodeType::IF);
     lineNumber = currentToken->lineNumber;
     currentToken = scanner->nextToken(); //consume IF
@@ -269,7 +354,7 @@ Node *Parser::parseIfStatement() {
         currentToken = scanner->nextToken(); //consume ELSE
          if (currentToken->type == BEGIN)
             ifNode->adopt(parseCompoundStatement());
-        else //must be oneline statement
+        else //must be one line statement
             ifNode->adopt(parseStatement());
     }
 
