@@ -39,7 +39,7 @@ make clean
 #### TASKS
 - [x] Add WHILE to parser
 - [ ] Add IF to parser
-- [ ] Add FOR to parser
+- [x] Add FOR to parser
 - [ ] Add CASE to parser
 - [ ] Implement the simple executor for above functionalities
 - [X] Add WHILE executor
