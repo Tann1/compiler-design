@@ -19,16 +19,16 @@ namespace intermediate {
 using namespace std;
 enum class NodeType
 {
-    PROGRAM, COMPOUND, ASSIGN, LOOP, TEST, IF, WRITE, WRITELN,
-    ADD, SUBTRACT, MULTIPLY, DIVIDE, EQ, NEQ, LT, LTEQ, GT, GTEQ,
+    PROGRAM, COMPOUND, ASSIGN, LOOP, TEST, IF, WRITE, WRITELN, NEGATE,
+    ADD, SUBTRACT, MULTIPLY, DIVIDE, MOD, EQ, NEQ, LT, LTEQ, GT, GTEQ,
     NOT, AND, OR, VARIABLE, INTEGER_CONSTANT, REAL_CONSTANT, STRING_CONSTANT,
     CHARACTER_CONSTANT
 };
 
 static const string NODE_TYPE_STRINGS[] =
 {
-    "PROGRAM", "COMPOUND", "ASSIGN", "LOOP", "TEST", "IF", "WRITE", "WRITELN",
-    "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EQ", "NEQ", "LT", "LTEQ", "GT", "GTEQ",
+    "PROGRAM", "COMPOUND", "ASSIGN", "LOOP", "TEST", "IF", "WRITE", "WRITELN", "NEGATE",
+    "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "MOD", "EQ", "NEQ", "LT", "LTEQ", "GT", "GTEQ",
     "NOT", "AND", "OR", "VARIABLE", "INTEGER_CONSTANT", "REAL_CONSTANT", "STRING_CONSTANT",
     "CHARACTER_CONSTANT"
 };
@@ -41,10 +41,12 @@ constexpr NodeType TEST               = NodeType::TEST;
 constexpr NodeType _IF                = NodeType::IF;
 constexpr NodeType WRITE              = NodeType::WRITE;
 constexpr NodeType WRITELN            = NodeType::WRITELN;
+constexpr NodeType NEGATE             = NodeType::NEGATE;
 constexpr NodeType ADD                = NodeType::ADD;
 constexpr NodeType SUBTRACT           = NodeType::SUBTRACT;
 constexpr NodeType MULTIPLY           = NodeType::MULTIPLY;
 constexpr NodeType DIVIDE             = NodeType::DIVIDE;
+constexpr NodeType MOD                = NodeType::MOD;
 constexpr NodeType EQ                 = NodeType::EQ;
 constexpr NodeType NEQ                = NodeType::NEQ;                  //assignment 3 extension
 constexpr NodeType LT                 = NodeType::LT;

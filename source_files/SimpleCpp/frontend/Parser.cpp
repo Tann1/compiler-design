@@ -55,6 +55,8 @@ void Parser::initialize()
 
     termOperators.insert(TokenType::STAR);
     termOperators.insert(TokenType::SLASH);
+    termOperators.insert(TokenType::DIV);
+    termOperators.insert(TokenType::MOD);
 }
 
 Node *Parser::parseProgram()
@@ -544,8 +546,10 @@ Node *Parser::parseTerm()
     // is a * or / operator.
     while (termOperators.find(currentToken->type) != termOperators.end())
     {
-        Node *opNode = currentToken->type == STAR ? new Node(MULTIPLY)
-                                                : new Node(DIVIDE);
+        Node *opNode = nullptr;
+        if (currentToken->type == STAR) opNode = new Node(MULTIPLY);
+        else if (currentToken->type == SLASH || currentToken->type == DIV) opNode = new Node(DIVIDE);
+        else if (currentToken->type == MOD) opNode = new Node(NodeType::MOD);
 
         currentToken = scanner->nextToken();  // consume the operator
 
@@ -563,27 +567,39 @@ Node *Parser::parseTerm()
 Node *Parser::parseFactor()
 {
     // The current token should now be an identifier or a number or (
+    
+    Node* negate = nullptr;
+    Node* factor = nullptr;
 
-    if      (currentToken->type == IDENTIFIER) return parseVariable();
-    else if (currentToken->type == INTEGER)    return parseIntegerConstant();
-    else if (currentToken->type == REAL)       return parseRealConstant();
+    if (currentToken->type == MINUS) {
+        negate = new Node(NEGATE);
+        currentToken = scanner->nextToken();        //consume negative number
+    }
+
+    if      (currentToken->type == IDENTIFIER) factor = parseVariable();
+    else if (currentToken->type == INTEGER)    factor = parseIntegerConstant();
+    else if (currentToken->type == REAL)       factor = parseRealConstant();
 
     else if (currentToken->type == LPAREN)
     {
         currentToken = scanner->nextToken();  // consume (
-        Node *exprNode = parseExpression();
+        factor = parseExpression();
 
         if (currentToken->type == RPAREN)
         {
             currentToken = scanner->nextToken();  // consume )
         }
         else syntaxError("Expecting )");
-
-        return exprNode;
     }
 
     else syntaxError("Unexpected token");
-    return nullptr;
+
+    if (negate != nullptr) {
+        negate->adopt(factor);
+        return negate;
+    }
+
+    return factor;
 }
 
 Node *Parser::parseVariable()

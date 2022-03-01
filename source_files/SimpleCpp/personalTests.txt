@@ -1,14 +1,12 @@
 program personalTest;
 BEGIN
-    i := 3;
+    i := -3;
     j := 4;
-     {if i = j then i := 33 
-        else if not (i <= j) then i := 44 
-        else if i = j then i := 55 
-        else i := 6;}
-    if i = 3 then
-        i := 3
-    else if j = 4 then
-        j := 4;
+    k := -124;
+
+    k := 10 DIV 5;
+    i := 4 MOD 2;
+    j := 15 / 5;
+    x := 20  * 2;
 
 END.
