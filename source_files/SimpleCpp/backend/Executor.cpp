@@ -49,7 +49,7 @@ Object Executor::visit(Node *node)
     switch (node->type)
     {
         case PROGRAM :  return visitProgram(node);
-
+        case _IF      :  return visitIf(node);
         case COMPOUND :
         case ASSIGN :
         case LOOP :
@@ -105,6 +105,16 @@ Object Executor::visitAssign(Node *assignNode)
     variableId->setValue(value);
 
     return Object();
+}
+
+
+Object Executor::visitIf(Node *ifNode) 
+{
+    bool ifCondition = visit(ifNode->children[0]).B;
+    if (ifNode->children.size() == 2) //meaning no else exists
+        return ifCondition ? visit(ifNode->children[1]) : Object();
+    else 
+        return ifCondition ? visit(ifNode->children[1]) : visit(ifNode->children[2]);
 }
 
 Object Executor::visitLoop(Node *loopNode)
@@ -186,13 +196,17 @@ void Executor::printValue(vector<Node *> children)
 Object Executor::visitExpression(Node *expressionNode)
 {
     // Single-operand expressions.
+    if (expressionNode->type == NEGATE)
+        return Object(-1 * visit(expressionNode->children[0]).D);
+
+
     if (singletons.find(expressionNode->type) != singletons.end())
     {
         switch (expressionNode->type)
         {
             case VARIABLE         : return visitVariable(expressionNode);
-            case INTEGER_CONSTANT : return visitIntegerConstant(expressionNode);
-            case REAL_CONSTANT    : return visitRealConstant(expressionNode);
+            case INTEGER_CONSTANT : return  visitIntegerConstant(expressionNode);
+            case REAL_CONSTANT    : return  visitRealConstant(expressionNode);
             case STRING_CONSTANT  : return visitStringConstant(expressionNode);
 
             default: return Object();
@@ -204,7 +218,7 @@ Object Executor::visitExpression(Node *expressionNode)
     {
         switch (expressionNode->type)
         {
-            case NodeType::NOT : return !(visit(expressionNode->children[0]).B); break;
+            case NodeType::NOT : return Object(!(visit(expressionNode->children[0]).B)); break;
             case NodeType::AND : 
                 value1 = visit(expressionNode->children[0]).B;
                 value2 = visit(expressionNode->children[1]).B;
@@ -263,6 +277,14 @@ Object Executor::visitExpression(Node *expressionNode)
 
             break;
         }
+        case MOD :
+            if (value2 != 0.0) value = value1/value2;
+            else
+            {
+                runtimeError(expressionNode, "Mod by zero");
+                return new Object(0.0);
+            }
+            break;
 
         default : break;
     }

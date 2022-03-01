@@ -46,6 +46,7 @@ private:
     Object visitStatement(Node *statementNode);
     Object visitCompound(Node *compoundNode);
     Object visitAssign(Node *assignNode);
+    Object visitIf(Node *ifNode);
     Object visitLoop(Node *loopNode);
     Object visitTest(Node *testNode);
     Object visitWrite(Node *writeNode);

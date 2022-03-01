@@ -1,14 +1,19 @@
 program personalTest;
 BEGIN
-    i := -3;
+    {i := -3;
     j := 4;
     k := -124;
-
-    k := 10 DIV 5;
+    }
+    writeln('hello world');
+    i := -3;
+    writeln('hello world');
+    writeln(i);
+    j := 4;
+    {k := 10 DIV 5;
     i := 4 MOD 2;
     j := 15 / 5;
-    x := 20  * 2;
-
-    if not (i = j) and (j = k) and (i = j) then x := 5;
+    x := 20  * 2;}
+    writeln('hello world');
+    
 
 END.
