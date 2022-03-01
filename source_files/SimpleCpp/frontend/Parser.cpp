@@ -454,22 +454,24 @@ void Parser::parseWriteArguments(Node *node)
 }
 
 
+
 Node *Parser::parseExpression()
 {
     // The current token should now be an identifier or a number.
-    TokenType tokenType;
+    
     // The expression's root node->
-    Node* notNode = nullptr;
 
     //if there's an boolean operator {NOT, AND, OR}
-    if (currentToken->type == TokenType::NOT) {
-        notNode = new Node(NodeType::NOT);
-        currentToken = scanner->nextToken(); //consume NOT
-    }
+    // if (currentToken->type == TokenType::NOT) {
+    //     notNode = new Node(NodeType::NOT);
+    //     currentToken = scanner->nextToken(); //consume NOT
+    // }
+
     Node* exprNode = parseSimpleExpression();
 
     // The current token might now be a relational operator.
-    if (relationalOperators.find(currentToken->type) != relationalOperators.end()
+    TokenType tokenType;
+    while (relationalOperators.find(currentToken->type) != relationalOperators.end()
     || booleanOperators.find(currentToken->type) != booleanOperators.end())
     {
         tokenType = currentToken->type;
@@ -497,12 +499,7 @@ Node *Parser::parseExpression()
         
     }
 
-    if (notNode != nullptr) {
-        notNode->adopt(exprNode);
-        exprNode = notNode;
-    }
-
-
+   
 
     return exprNode;
 }
@@ -510,6 +507,11 @@ Node *Parser::parseExpression()
 Node *Parser::parseSimpleExpression()
 {
     // The current token should now be an identifier or a number.
+    Node *notNode = nullptr;
+    if (currentToken->type == NOT) {
+        currentToken = scanner->nextToken(); //consume NOT
+        notNode = new Node(NodeType::NOT);
+    }
 
     // The simple expression's root node->
     Node *simpExprNode = parseTerm();
@@ -530,6 +532,11 @@ Node *Parser::parseSimpleExpression()
         opNode->adopt(simpExprNode);
         opNode->adopt(parseTerm());
         simpExprNode = opNode;
+    }
+
+    if (notNode != nullptr) {
+        notNode->adopt(simpExprNode);
+        simpExprNode = notNode;
     }
 
     return simpExprNode;

@@ -9,4 +9,6 @@ BEGIN
     j := 15 / 5;
     x := 20  * 2;
 
+    if not (i = j) and (j = k) and (i = j) then x := 5;
+
 END.
