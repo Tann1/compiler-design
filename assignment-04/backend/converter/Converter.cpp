@@ -599,43 +599,7 @@ Object Converter::visitParenthesizedFactor(
 
 Object Converter::visitWhileStatement(PascalParser::WhileStatementContext *ctx)
 {
-    code.emitLine("while(" + visitExpression(ctx->expression()).as<string>() +")");
-    code.indent();
-    code.emitStart();
-    visitStatement(ctx->statement()); // <-Visit statement already handles the braces
-    code.dedent();
-    return nullptr;
-}
-
-Object Converter::visitForStatement(PascalParser::ForStatementContext *ctx)
-{
-    string loopVariable = visitVariable(ctx->variable()).as<string>();
-
-    code.emitStart("for(");
-
-    //Initial assignment
-    code.emit( loopVariable + "=" + visitExpression(ctx->expression(0)).as<string>() + ";");
-
-    string compSymbol;
-    string opSymbol;
-    //Incrementing count
-    if(ctx->TO()){
-        compSymbol = "<=";
-        opSymbol = "++";
-    }
-    //Decrementing count
-    else{
-        compSymbol = ">=";
-        opSymbol = "--";
-    }
-
-    //While condition
-    code.emit(loopVariable + compSymbol + visitExpression(ctx->expression(1)).as<string>() + ";");
-
-    //Variable Inc/Dec
-    code.emit(loopVariable + opSymbol);
-    code.emitEnd(")");
-
+    code.emitLine("while(" + visitExpression(ctx->expression()).as<string>() +")"); // add proper syntax for while
     code.indent();
     code.emitStart();
     visitStatement(ctx->statement());
@@ -643,17 +607,50 @@ Object Converter::visitForStatement(PascalParser::ForStatementContext *ctx)
     return nullptr;
 }
 
+Object Converter::visitForStatement(PascalParser::ForStatementContext *ctx)
+{
+    string loopVariable = visitVariable(ctx->variable()).as<string>(); // visit the initial variable
+
+    code.emitStart("for("); // syntax
+
+
+    code.emit( loopVariable + "=" + visitExpression(ctx->expression(0)).as<string>() + ";"); // initialize variable
+
+    string compare;
+    string op;
+    if(ctx->TO()){ // normal style (increment)
+        compare= "<=";
+        op = "++";
+    }
+    else{ // decrement
+        compare = ">=";
+        op = "--";
+    }
+
+    //while
+    code.emit(loopVariable + compare + visitExpression(ctx->expression(1)).as<string>() + ";");
+
+    //Variable Inc/Dec
+    code.emit(loopVariable + op);
+    code.emitEnd(")"); // end of loop statement
+
+    code.indent();
+    code.emitStart();
+    visitStatement(ctx->statement()); // starting visiting body of the loop
+    code.dedent();
+    return nullptr;
+}
+
 Object Converter::visitIfStatement(PascalParser::IfStatementContext *ctx)
 {
     code.emitLine("if(" + visitExpression(ctx->expression()).as<string>() + ")");
-    //"Then" statement
     code.indent();
     code.emitStart();
     visitTrueStatement(ctx->trueStatement());
     code.dedent();
 
-    //"Else" statement (if exists)
-    if(ctx->ELSE()){
+
+    if(ctx->ELSE()){ // must check to see if else exists before adding an else
         code.emitLine("else");
         code.indent();
         code.emitStart();
@@ -665,53 +662,48 @@ Object Converter::visitIfStatement(PascalParser::IfStatementContext *ctx)
 
 Object Converter::visitCaseStatement(PascalParser::CaseStatementContext *ctx)
 {
-    code.emitLine("switch(" + visitExpression(ctx->expression()).as<string>() + ")");
+
+	Typespec *type = ctx->expression()->type;
+
+    code.emitLine("switch(" + visitExpression(ctx->expression()).as<string>() + ")"); // standard swtich syntax
     code.emitLine("{");
     code.indent();
-
-    Typespec *type = ctx->expression()->type;
-
-    for(PascalParser::CaseBranchContext* branchCtx : ctx->caseBranchList()->caseBranch()){
-        if(!branchCtx->caseConstantList() || !branchCtx->statement()){
+    for(PascalParser::CaseBranchContext* branchCtx : ctx->caseBranchList()->caseBranch()){ // loop through cases
+        if(!branchCtx->caseConstantList() || !branchCtx->statement()){ // if they're not const or a statement then continue
             continue;
         }
 
-        for(unsigned int i=0;i<branchCtx->caseConstantList()->caseConstant().size()-1;i++){
-            //Loop through all but the last one
-            PascalParser::ConstantContext* constantCtx = branchCtx->caseConstantList()->caseConstant(i)->constant();
+        for(unsigned int i=0;i<branchCtx->caseConstantList()->caseConstant().size()-1;i++){ // const case
+            PascalParser::ConstantContext* constantCtx = branchCtx->caseConstantList()->caseConstant(i)->constant(); // loop everything expect last one
 
-            Object constantObj = visitConstant(constantCtx);
+            Object constObj = visitConstant(constantCtx);
             stringstream constant;
-            //For some reason returning a string doesn't work
-            if(type == Predefined::integerType){
-                constant << to_string(constantObj.as<int>());
+            if(type == Predefined::integerType){ // some error handling if string doesn't work
+                constant << to_string(constObj.as<int>());
             }
             else if(type == Predefined::charType){
-                constant << "'" << constantObj.as<char>() << "'";
+                constant << "'" << constObj.as<char>() << "'";
             }
             else{
-                throw std::runtime_error("Cannot deduce type");
+                throw std::runtime_error("Type Unknown");
             }
 
-            //In C++ each constant needs it's own case
+
             code.emitLine("case " + constant.str() + ":");
-            //Dont emit the statement, will use "fall-though"
-        }
-        //Now emit the actual statement
-        Object constantObj = visitConstant(branchCtx->caseConstantList()->caseConstant().back()->constant());
-        stringstream constant;
-        //For some reason returning a string doesn't work
-        if(type == Predefined::integerType){
-            constant << to_string(constantObj.as<int>());
-        }
-        else if(type == Predefined::charType){
-            constant << "'" << constantObj.as<char>() << "'";
-        }
-        else{
-            throw std::runtime_error("Cannot deduce type");
         }
 
-        //string constant = visitConstant(branchCtx->caseConstantList()->caseConstant().back()->constant()).as<int>();
+        // start with the statement now everything before was just set up
+        Object constObj = visitConstant(branchCtx->caseConstantList()->caseConstant().back()->constant());
+        stringstream constant;
+        if(type == Predefined::integerType){
+            constant << to_string(constObj.as<int>());
+        }
+        else if(type == Predefined::charType){
+            constant << "'" << constObj.as<char>() << "'";
+        }
+        else{
+            throw std::runtime_error("Type Unknown");
+        }
         code.emitLine("case " + constant.str() + ":");
         code.indent();
         code.emitStart();
@@ -727,28 +719,28 @@ Object Converter::visitCaseStatement(PascalParser::CaseStatementContext *ctx)
 
 Object Converter::visitProcedureCallStatement(PascalParser::ProcedureCallStatementContext *ctx)
 {
+	// procedure are only statements don't really appear in expressions
     code.emit(ctx->procedureName()->getText() + "(");
     if(ctx->argumentList()) {
         visitArgumentList(ctx->argumentList());
     }
-    //Procedure can't be called in middle of expression, so we know it is its own statement
     code.emitEnd(");");
     return nullptr;
 }
 
 Object Converter::visitFunctionCall(PascalParser::FunctionCallContext *ctx)
 {
+	// call = invoking
     code.emit(ctx->functionName()->getText() + "(");
-    if(ctx->argumentList()) {
-        visitArgumentList(ctx->argumentList());
+    if(ctx->argumentList()) { // if there are parameters
+        visitArgumentList(ctx->argumentList()); //  then visit and emit them as well
     }
-    //Individual function call is not a factor
     code.emitEnd(");");
     return nullptr;
 }
 
 Object Converter::visitFunctionCallFactor(PascalParser::FunctionCallFactorContext *ctx){
-    //Same as function call, but a factor is returned as a string
+    // same as function call but a factor is returned as a string
     string functionStr;
     functionStr.append(ctx->functionCall()->functionName()->getText() + "(");
 
