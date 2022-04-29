@@ -6,7 +6,7 @@
     using namespace intermediate::type;
 
 
-// Generated from Pascal.g4 by ANTLR 4.7.2
+// Generated from Pascal.g4 by ANTLR 4.9.3
 
 #pragma once
 
@@ -31,7 +31,7 @@ public:
     STRING = 59, COMMENT = 60
   };
 
-  PascalLexer(antlr4::CharStream *input);
+  explicit PascalLexer(antlr4::CharStream *input);
   ~PascalLexer();
 
   virtual std::string getGrammarFileName() const override;

@@ -1,0 +1,47 @@
+001 program TestWhile(input, output, error);
+002 
+003 var
+004     i, j : integer;
+005     
+006 begin
+007     i := 1;
+008     while i <= 5 do begin
+009         writeln('i = ', i);
+010         i := i + 1
+011     end;
+012     
+013     writeln;
+014     
+015     i := 1;
+016     while i <= 5 do begin
+017         j := 10;
+018         
+019         while j <= 30 do begin
+020             writeln('i = ', i, ', j = ', j);
+021             j := j + 10
+022         end;
+023         
+024         i := i + 1
+025     end
+026 end.
+
+PASS 1 Syntax: There were no syntax errors.
+
+PASS 2 Semantics:
+
+===== CROSS-REFERENCE TABLE =====
+
+*** PROGRAM TestWhile ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+i                004 007 008 009 010 010 015 016 020 024 024
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+j                004 017 019 020 021 021
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+
+PASS 3 Compilation: Object file "TestWhile.j" created.

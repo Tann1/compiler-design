@@ -1,0 +1,108 @@
+001 program TestIf;
+002 
+003 var
+004     i, j, k : integer;
+005     x, y : real;
+006     p, q : boolean;
+007     str, txt : string;
+008     
+009 begin
+010     i := 1;
+011     j := 2;
+012     
+013     IF i = j THEN x := 3.14
+014              ELSE x := -5;
+015      
+016     IF i <> j THEN y := 3.14
+017               ELSE y := -5;
+018     
+019     writeln('i = ', i, ', j = ', j, ', x = ', x:5:2, ', y = ', y:5:2);
+020     
+021     IF i = j THEN BEGIN
+022         x := -7
+023     END 
+024     ELSE BEGIN
+025         x := 8;
+026     END;
+027      
+028     IF i <> j THEN BEGIN
+029         y := 14
+030     END 
+031     ELSE BEGIN
+032         y := -2;
+033     END;
+034     
+035     writeln('i = ', i, ', j = ', j, ', x = ', x:5:2, ', y = ', y:5:2);
+036     
+037     p := i = j;
+038     IF p THEN x := 55.55
+039          ELSE BEGIN
+040             x := 77.77;
+041             y := 88.88;
+042          END;
+043     
+044     writeln('i = ', i, ', j = ', j, ', x = ', x:5:2, ', y = ', y:5:2);
+045     
+046     q := i <= j;
+047     k := 10;
+048     
+049     if p then i := 33 else if not q then i := 44 else if i = j then i := 55 else i := 6;
+050     if not p then if q then j := 9 else j := -9;
+051     if p then if q then k := 11 else k := 12;
+052     
+053     writeln('i = ', i, ', j = ', j, ', x = ', x:5:2, ', y = ', y:5:2);
+054     writeln('k = ', k);
+055     
+056     writeln;
+057     if not p and q and (i <> j) and (x < y) then write('Good-bye');
+058     if not p then if q then if i <> j then if x < y then writeln(', world!');
+059 end.
+
+PASS 1 Syntax: There were no syntax errors.
+
+PASS 2 Semantics:
+
+===== CROSS-REFERENCE TABLE =====
+
+*** PROGRAM TestIf ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+i                004 010 013 016 019 021 028 035 037 044 046 049 049 049 049 049 053 057 058
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+j                004 011 013 016 019 021 028 035 037 044 046 049 050 050 053 057 058
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+k                004 047 051 051 054
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+p                006 037 038 049 050 051 057 058
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = enumeration, Type id = boolean
+q                006 046 049 050 051 057 058
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = enumeration, Type id = boolean
+str              007
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = string
+txt              007
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = string
+x                005 013 014 019 022 025 035 038 040 044 053 057 058
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = real
+y                005 016 017 019 029 032 035 041 044 053 057 058
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = real
+
+PASS 3 Compilation: Object file "TestIf.j" created.

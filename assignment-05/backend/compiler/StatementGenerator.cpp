@@ -60,7 +60,23 @@ void StatementGenerator::emitAssignment(PascalParser::AssignmentStatementContext
 
 void StatementGenerator::emitIf(PascalParser::IfStatementContext *ctx)
 {
-    /***** Complete this member function. *****/
+    Label* falseLabel = new Label();
+    Label* nextLabel = new Label();
+
+    compiler->visitExpression(ctx->expression()); // evaluate the expression
+    emit(Instruction::ICONST_0);
+    if (ctx->ELSE()) 
+        emit(Instruction::IF_ICMPEQ, falseLabel);
+    else
+        emit(Instruction::IF_ICMPEQ, nextLabel);
+    
+    compiler->visit(ctx->trueStatement()); // block of true statement code
+    if (ctx->ELSE()) {  // only if there's an else statement also takes care of else if 
+        emit(Instruction::GOTO, nextLabel);
+        emitLabel(falseLabel);
+        compiler->visit(ctx->falseStatement());
+    }
+    emitLabel(nextLabel); // end of the if statement label
 }
 
 void StatementGenerator::emitCase(PascalParser::CaseStatementContext *ctx)
@@ -85,7 +101,16 @@ void StatementGenerator::emitRepeat(PascalParser::RepeatStatementContext *ctx)
 
 void StatementGenerator::emitWhile(PascalParser::WhileStatementContext *ctx)
 {
-    /***** Complete this member function. *****/
+    Label* loopTopLabel = new Label();
+    Label* loopExitLabel = new Label();
+
+    emitLabel(loopTopLabel);
+    compiler->visitExpression(ctx->expression());
+    emit(Instruction::ICONST_0); // put 0 on top of the operand stack
+    emit(Instruction::IF_ICMPEQ, loopExitLabel); // if condition is false then exit 
+    compiler->visit(ctx->statement());
+    emit(Instruction::GOTO, loopTopLabel);
+    emitLabel(loopExitLabel);
 }
 
 void StatementGenerator::emitFor(PascalParser::ForStatementContext *ctx)
