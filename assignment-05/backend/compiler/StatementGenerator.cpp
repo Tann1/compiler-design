@@ -58,7 +58,7 @@ void StatementGenerator::emitAssignment(PascalParser::AssignmentStatementContext
     }
 }
 
-void StatementGenerator::emitIf(PascalParser::IfStatementContext *ctx)
+void StatementGenerator::emitIf(PascalParser::IfStatementContext *ctx) // assignment 05
 {
     Label* falseLabel = new Label();
     Label* nextLabel = new Label();
@@ -79,7 +79,7 @@ void StatementGenerator::emitIf(PascalParser::IfStatementContext *ctx)
     emitLabel(nextLabel); // end of the if statement label
 }
 
-void StatementGenerator::emitCase(PascalParser::CaseStatementContext *ctx)
+void StatementGenerator::emitCase(PascalParser::CaseStatementContext *ctx) //assignment 05
 {
     /***** Complete this member function. *****/
 }
@@ -99,7 +99,7 @@ void StatementGenerator::emitRepeat(PascalParser::RepeatStatementContext *ctx)
     emitLabel(loopExitLabel);
 }
 
-void StatementGenerator::emitWhile(PascalParser::WhileStatementContext *ctx)
+void StatementGenerator::emitWhile(PascalParser::WhileStatementContext *ctx) // assignment 05
 {
     Label* loopTopLabel = new Label();
     Label* loopExitLabel = new Label();
@@ -113,23 +113,47 @@ void StatementGenerator::emitWhile(PascalParser::WhileStatementContext *ctx)
     emitLabel(loopExitLabel);
 }
 
-void StatementGenerator::emitFor(PascalParser::ForStatementContext *ctx)
+void StatementGenerator::emitFor(PascalParser::ForStatementContext *ctx) // assignment 05
+{
+   Label* loopTopLabel = new Label();
+    Label* loopExitLabel = new Label();
+
+    compiler->visit(ctx->expression()[0]); // init assign
+    emitStoreValue(ctx->variable()->entry, ctx->variable()->type);
+    emitLabel(loopTopLabel);
+    compiler->visit(ctx->expression()[1]);
+    emit(Instruction::ICONST_1);
+    if (ctx->TO())
+        emit(Instruction::IADD);
+    else if (ctx->DOWNTO())
+        emit(Instruction::ISUB);
+    emitLoadValue(ctx->variable()->entry);
+    emit(Instruction::IF_ICMPEQ, loopExitLabel);
+    compiler->visit(ctx->statement()); // visit the body of the loop
+    emitLoadValue(ctx->variable()->entry);
+    emit(Instruction::ICONST_1);
+    if (ctx->TO())
+        emit(Instruction::IADD);
+    else if (ctx->DOWNTO())
+        emit(Instruction::ISUB);
+    emitStoreValue(ctx->variable()->entry, ctx->variable()->type);
+    emit(Instruction::GOTO, loopTopLabel);
+    emitLabel(loopExitLabel);
+
+}
+
+void StatementGenerator::emitProcedureCall(PascalParser::ProcedureCallStatementContext *ctx) // assignment 05
 {
     /***** Complete this member function. *****/
 }
 
-void StatementGenerator::emitProcedureCall(PascalParser::ProcedureCallStatementContext *ctx)
-{
-    /***** Complete this member function. *****/
-}
-
-void StatementGenerator::emitFunctionCall(PascalParser::FunctionCallContext *ctx)
+void StatementGenerator::emitFunctionCall(PascalParser::FunctionCallContext *ctx) // assignment 05
 {
     /***** Complete this member function. *****/
 }
 
 void StatementGenerator::emitCall(SymtabEntry *routineId,
-                                  PascalParser::ArgumentListContext *argListCtx)
+                                  PascalParser::ArgumentListContext *argListCtx) // assignment 05
 {
     /***** Complete this member function. *****/
 }

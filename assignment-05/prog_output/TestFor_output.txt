@@ -1,0 +1,73 @@
+001 program TestFor;
+002 
+003 var
+004     i, j : integer;
+005     ch : char;
+006     
+007 procedure proc(limit : integer);
+008     var
+009         i : integer;
+010         
+011     begin
+012         for i := 1 to limit do writeln('i = ', i);
+013         writeln;
+014     end;
+015     
+016 begin
+017     proc(5);
+018     
+019     for i := 1 to 3 do begin
+020         for j := 4 downto 1 do begin
+021             writeln('i = ', i, ', j = ', j);
+022         END
+023     end;
+024     
+025     writeln;
+026     
+027     for ch := 'a' to 'z' do write(ch);
+028     writeln;
+029     
+030     for ch := 'Z' DOWNto 'A' do write(ch);
+031     writeln;
+032 end.
+
+PASS 1 Syntax: There were no syntax errors.
+
+PASS 2 Semantics:
+
+===== CROSS-REFERENCE TABLE =====
+
+*** PROGRAM TestFor ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+ch               005 027 027 030 030
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = char
+i                004 019 021
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+j                004 020 021
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+proc            
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+
+*** PROCEDURE proc ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+i                009 012 012
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+limit            007 012
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+
+PASS 3 Compilation: Object file "TestFor.j" created.
