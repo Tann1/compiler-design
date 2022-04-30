@@ -21,6 +21,7 @@ public:
     StatementGenerator(CodeGenerator *parent, Compiler *compiler)
         : CodeGenerator(parent, compiler) {}
 
+    string typeToString(Typespec *type); // utility function
     /**
      * Emit code for an assignment statement.
      * @param ctx the AssignmentStatementContext.

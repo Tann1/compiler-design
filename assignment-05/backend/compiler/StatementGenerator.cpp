@@ -81,7 +81,32 @@ void StatementGenerator::emitIf(PascalParser::IfStatementContext *ctx) // assign
 
 void StatementGenerator::emitCase(PascalParser::CaseStatementContext *ctx) //assignment 05
 {
-    /***** Complete this member function. *****/
+    std::vector<std::pair<PascalParser::CaseBranchContext*, Label*>> branch_labels;
+    Label* caseExit = new Label();
+
+    for (PascalParser::CaseBranchContext *branch: ctx->caseBranchList()->caseBranch())
+        branch_labels.emplace_back(branch, new Label());
+    compiler->visit(ctx->expression());
+    emit(Instruction::LOOKUPSWITCH);
+    std::set<std::pair<int, Label*>> label_set;
+    for (unsigned int idx = 0; idx < branch_labels.size(); ++idx) {
+        if (!branch_labels[idx].first->caseConstantList())
+            continue;
+        for (PascalParser::CaseConstantContext *constantCtx: branch_labels[idx].first->caseConstantList()->caseConstant())
+            label_set.insert(std::make_pair(constantCtx->value, branch_labels[idx].second));
+    }
+
+    for (std::pair<int, Label*> entry: label_set)
+        emitLabel(entry.first, entry.second);
+    emitLabel("default", caseExit);
+
+    for (std::pair<PascalParser::CaseBranchContext*, Label*> entry: branch_labels) {
+        emitLabel(entry.second);
+        if (entry.first->statement() != nullptr)
+            compiler->visit(entry.first->statement());
+        emit(Instruction::GOTO, caseExit);
+    }
+    emitLabel(caseExit);
 }
 
 void StatementGenerator::emitRepeat(PascalParser::RepeatStatementContext *ctx)
@@ -128,9 +153,9 @@ void StatementGenerator::emitFor(PascalParser::ForStatementContext *ctx) // assi
     else if (ctx->DOWNTO())
         emit(Instruction::ISUB);
     emitLoadValue(ctx->variable()->entry);
-    emit(Instruction::IF_ICMPEQ, loopExitLabel);
+    emit(Instruction::IF_ICMPEQ, loopExitLabel); // branch for exit if true
     compiler->visit(ctx->statement()); // visit the body of the loop
-    emitLoadValue(ctx->variable()->entry);
+    emitLoadValue(ctx->variable()->entry); // increment or decrement by one set-up 
     emit(Instruction::ICONST_1);
     if (ctx->TO())
         emit(Instruction::IADD);
@@ -144,18 +169,50 @@ void StatementGenerator::emitFor(PascalParser::ForStatementContext *ctx) // assi
 
 void StatementGenerator::emitProcedureCall(PascalParser::ProcedureCallStatementContext *ctx) // assignment 05
 {
-    /***** Complete this member function. *****/
+    emitCall(ctx->procedureName()->entry, ctx->argumentList());
 }
 
 void StatementGenerator::emitFunctionCall(PascalParser::FunctionCallContext *ctx) // assignment 05
 {
-    /***** Complete this member function. *****/
+    emitCall(ctx->functionName()->entry, ctx->argumentList());
 }
 
 void StatementGenerator::emitCall(SymtabEntry *routineId,
                                   PascalParser::ArgumentListContext *argListCtx) // assignment 05
 {
-    /***** Complete this member function. *****/
+    std::string arg_type = "";
+
+    if (argListCtx != nullptr) {
+        std::vector<Typespec *> expected_argType;
+       // expected_argType.reserve(argListCtx->argument().size()); // allocate space for arguments
+        for (SymtabEntry* argSymTabEntry: *routineId->getRoutineParameters()) {
+            expected_argType.push_back(argSymTabEntry->getType());
+            arg_type  += typeToString(argSymTabEntry->getType());
+        }
+
+        for (unsigned int idx = 0; idx < argListCtx->argument().size(); ++idx) {
+            PascalParser::ArgumentContext* arg_ctx = argListCtx->argument(idx);
+            compiler->visit(arg_ctx->expression());
+            if (arg_ctx->expression()->type != expected_argType[idx]) // assuming from integer to real type cast 
+                emit(Instruction::I2F); 
+                
+        }
+    }
+
+    std::string ret_type = typeToString(routineId->getType());
+    std::string func_name = programName + "/" + routineId->getName() + "(" + arg_type + ")" + (ret_type.empty()?"V":ret_type);
+    emit(Instruction::INVOKESTATIC, func_name);
+}
+string StatementGenerator::typeToString(Typespec *type){
+    static std::map<Typespec*,string> typeMap= {
+            {Predefined::integerType,"I"},
+            {Predefined::charType,"C"},
+            {Predefined::booleanType,"Z"},
+            {Predefined::realType,"F"},
+            {Predefined::stringType,"S"},
+            {Predefined::undefinedType,"V"}
+    };
+    return typeMap[type];
 }
 
 void StatementGenerator::emitWrite(PascalParser::WriteStatementContext *ctx)
