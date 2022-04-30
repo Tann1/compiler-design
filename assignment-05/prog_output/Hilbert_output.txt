@@ -1,0 +1,583 @@
+001 PROGRAM Hilbert (input, output);
+002 
+003 {Use LU decomposition and back-substitution to invert matrices.  
+004  A Hilbert matrix of size 5 serves as an example. Hilbert matrices 
+005  are ill-conditioned and are notoriously difficult to invert accurately.  
+006  This program computes the Hilbert matrix, inverts it, multiples the
+007  Hilbert matrix by its inverse (resulting in an approximation of the
+008  identity matrix), and then inverts the inverse (resulting in an
+009  approximation of the original Hilbert matrix.}
+010 
+011 CONST
+012     MAX = 5;
+013 
+014 TYPE
+015     vector = ARRAY [1..MAX]         OF real;
+016     matrix = ARRAY [1..MAX, 1..MAX] OF real;
+017     
+018     why = (SINGULARMATRIX, ZEROROW, NOCONVERGENCE);
+019 
+020 VAR
+021     ps      : ARRAY [1..MAX] OF integer;  {global pivot index array}
+022     H       : matrix;                     {Hilbert matrix}
+023     Hinv    : matrix;                     {Hilbert matrix inverse}
+024     Z       : matrix;                     {Identity matrix}
+025     i, j, n : integer;
+026 
+027 PROCEDURE singular(w : why);
+028 
+029     BEGIN
+030         CASE w OF
+031             SINGULARMATRIX : writeln('Singular matrix in decompose.');
+032             ZEROROW        : writeln('Matrix with zero row in decompose.');
+033             NOCONVERGENCE  : writeln('No convergence in improve.');
+034         END;
+035     END;
+036     
+037 FUNCTION abs(x : real) : real;
+038 
+039     BEGIN
+040         IF x < 0 THEN x := -x;
+041         abs := x;
+042     END;
+043 
+044 PROCEDURE decompose(n : integer; VAR A, LU : matrix);
+045 
+046     {Computes triangular matrices L and U and permutation matrix P
+047      so that LU = PA.  Stores L-I and U in LU.  Vector ps contains
+048      permuted row indices.  Note that A and LU are often passed the
+049      same matrix.}
+050 
+051     VAR
+052         scales : vector;
+053         i, j, k, pivotindex : integer;
+054         normrow, pivot, size, biggest, mult : real;
+055 
+056     BEGIN
+057 
+058         {Initialize ps, LU, and scales.}
+059         FOR i := 1 TO n DO BEGIN  {rows}
+060             ps[i] := i;
+061             normrow := 0;
+062 
+063             FOR j := 1 TO n DO BEGIN  {columns}
+064                 LU[i,j] := A[i,j];
+065 
+066                 {Find the largest row element.}
+067                 IF normrow < abs(LU[i,j]) THEN normrow := abs(LU[i,j]);
+068             END;
+069 
+070             {Set the scaling factor for row equilibration.}
+071             IF normrow <> 0 THEN scales[i] := 1/normrow
+072             ELSE BEGIN
+073                 scales[i] := 0;
+074                 singular(ZEROROW);
+075             END;
+076         END;
+077 
+078         {Gaussian elimination with partial pivoting.}
+079         FOR k := 1 TO n-1 DO BEGIN  {pivot row k}
+080             pivotindex := 0;
+081             biggest := 0;
+082 
+083             {Go down rows from row k.}
+084             FOR i := k TO n DO BEGIN
+085 
+086                 {Divide by the largest row element.}
+087                 size := abs(LU[ps[i], k])*scales[ps[i]];
+088 
+089                 IF biggest < size THEN BEGIN
+090                     biggest    := size;  {biggest scales column element}
+091                     pivotindex := i;     {row index of this element}
+092                 END;
+093             END;
+094 
+095             IF biggest = 0 THEN singular(SINGULARMATRIX)
+096             ELSE BEGIN
+097                 IF pivotindex <> k THEN BEGIN
+098 
+099                     {Exchange rows.}
+100                     j := ps[k];
+101                     ps[k] := ps[pivotindex];
+102                     ps[pivotindex] := j;
+103                 END;
+104 
+105                 pivot := LU[ps[k], k];  {pivot element}
+106 
+107                 {Go down rest of rows.}
+108                 FOR i := k+1 TO n DO BEGIN
+109                     mult := LU[ps[i], k]/pivot;
+110                     LU[ps[i], k] := mult;
+111 
+112                     IF mult <> 0 THEN BEGIN
+113 
+114                         {Inner loop.  Only column subscript varies.}
+115                         FOR j := k+1 TO n DO BEGIN
+116                             LU[ps[i], j] := LU[ps[i], j]
+117                                                 - mult*LU[ps[k], j];
+118                         END;
+119                     END;
+120                 END;
+121             END;
+122         END;
+123 
+124         {Check bottom right element of permuted matrix.}
+125         IF LU[ps[n], n] = 0 THEN singular(SINGULARMATRIX);
+126     END;
+127 
+128 PROCEDURE solve(n : integer; VAR LU : matrix; VAR b, x : vector);
+129 
+130     {Solves Ax = b using LU from decompose.}
+131 
+132     VAR
+133         i, j : integer;
+134         dot  : real;
+135 
+136     BEGIN
+137 
+138         {Ly = b : solve for y.}
+139         FOR i := 1 TO n DO BEGIN
+140             dot := 0;
+141             FOR j := 1 TO i-1 DO BEGIN
+142                 dot := dot + LU[ps[i], j]*x[j];
+143             END;
+144             x[i] := b[ps[i]] - dot;
+145         END;
+146 
+147         {Ux = y : solve for x.}
+148         FOR i := n DOWNTO 1 DO BEGIN
+149             dot := 0;
+150             FOR j := i+1 TO n DO BEGIN
+151                 dot := dot + LU[ps[i], j]*x[j];
+152             END;
+153             x[i] := (x[i] - dot)/LU[ps[i], i];
+154         END;
+155     END;
+156 
+157 PROCEDURE invert(n : integer; VAR A, Ainv : matrix);
+158 
+159     {Compute Ainv = inverse(A).  Note that A and Ainv are often
+160      passed the same matrix.}
+161 
+162     VAR
+163         LU :   matrix;
+164         b, x : vector;
+165         i, j : integer;
+166 
+167     BEGIN
+168         decompose(n, A, LU);
+169 
+170         FOR j := 1 TO n DO BEGIN
+171             FOR i := 1 TO n DO BEGIN
+172                 IF i = j THEN b[i] := 1
+173                          ELSE b[i] := 0;
+174             END;
+175 
+176             solve(n, LU, b, x);
+177 
+178             FOR i := 1 TO n DO Ainv[i,j] := x[i];
+179         END;
+180     END;
+181     
+182 PROCEDURE multiply(n : integer; VAR A, B, P : matrix);
+183 
+184     {Compute P = A x B.}
+185     
+186     VAR
+187         i, j, k : integer;
+188         sum : real;
+189         
+190     BEGIN
+191         FOR i := 1 TO n DO BEGIN
+192             FOR j := 1 TO n DO BEGIN
+193                 sum := 0.0;
+194                 
+195                 FOR k := 1 TO n DO BEGIN
+196                     sum := sum + A[i,k]*B[k,j];
+197                 END;
+198                 
+199                 P[i,j] := sum;
+200             END;
+201         END;
+202     END;
+203 
+204 PROCEDURE printmatrix(VAR M : matrix);
+205 
+206     VAR
+207         i, j : integer;
+208 
+209     BEGIN
+210         writeln;
+211         FOR i := 1 TO n DO BEGIN
+212             FOR j := 1 TO n DO write(M[i,j]:15:6);
+213             writeln;
+214         END;
+215         writeln;
+216     END;
+217 
+218 BEGIN
+219     n := 5;
+220 
+221     {Compute the Hilbert matrix.}
+222     FOR i := 1 TO n DO BEGIN
+223         FOR j := 1 TO n DO BEGIN
+224             H[i,j] := 1.0/(i + j - 1);
+225         END;
+226     END;
+227 
+228     writeln;
+229     writeln('Hilbert matrix:');
+230     printmatrix(H);
+231 
+232     {Invert the Hilbert matrix.}
+233     invert(n, H, Hinv);
+234 
+235     writeln('Hilbert matrix inverted:');
+236     printmatrix(Hinv);
+237     
+238     {Multiply the Hilbert matrix by its inverse.}
+239     multiply(n, H, Hinv, Z);
+240     
+241     writeln('Hilbert matrix multiplied by its inverse:');
+242     printmatrix(Z);
+243 
+244     {Invert the inverse.}
+245     invert(n, Hinv, H);
+246 
+247     writeln('Inverse matrix inverted:');
+248     printmatrix(H);
+249 END.
+
+PASS 1 Syntax: There were no syntax errors.
+
+PASS 2 Semantics:
+
+===== CROSS-REFERENCE TABLE =====
+
+*** PROGRAM Hilbert ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+abs             
+                                 Defined as: FUNCTION
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = real
+decompose       
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+h                022 224 230 233 239 245 248
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = array, Type id = matrix
+hinv             023 233 236 239 245
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = array, Type id = matrix
+i                025 222 224 224
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+invert          
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+j                025 223 224 224
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+matrix           016 022 023 024 044 128 157 163 182 204
+                                 Defined as: type
+                                 Scope nesting level: 1
+                                 Type form = array, Type id = matrix
+                                 --- INDEX TYPE ---
+                                 Type form = subrange, Type id = <unnamed>
+                                 --- Base type ---
+                                 Type form = scalar, Type id = integer
+                                 Range = 1..5
+                                 --- ELEMENT TYPE ---
+                                 Type form = array, Type id = <unnamed>
+                                 5 elements
+                                 --- INDEX TYPE ---
+                                 Type form = subrange, Type id = <unnamed>
+                                 --- Base type ---
+                                 Type form = scalar, Type id = integer
+                                 Range = 1..5
+                                 --- ELEMENT TYPE ---
+                                 Type form = scalar, Type id = real
+                                 5 elements
+max              012 015 016 016 021
+                                 Defined as: constant
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+                                 Value: 5
+multiply        
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+n                025 211 212 219 222 223 233 239 245
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+noconvergence    018 033
+                                 Defined as: enumeration constant
+                                 Scope nesting level: 1
+                                 Type form = enumeration, Type id = why
+                                 Value = 2
+printmatrix     
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+ps               021 060 087 087 100 101 101 102 105 109 110 116 116 117 125 142 144 151 153
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = array, Type id = <unnamed>
+                                 --- INDEX TYPE ---
+                                 Type form = subrange, Type id = <unnamed>
+                                 --- Base type ---
+                                 Type form = scalar, Type id = integer
+                                 Range = 1..5
+                                 --- ELEMENT TYPE ---
+                                 Type form = scalar, Type id = integer
+                                 5 elements
+singular        
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+singularmatrix   018 031 095 125
+                                 Defined as: enumeration constant
+                                 Scope nesting level: 1
+                                 Type form = enumeration, Type id = why
+                                 Value = 0
+solve           
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+vector           015 052 128 164
+                                 Defined as: type
+                                 Scope nesting level: 1
+                                 Type form = array, Type id = vector
+                                 --- INDEX TYPE ---
+                                 Type form = subrange, Type id = <unnamed>
+                                 --- Base type ---
+                                 Type form = scalar, Type id = integer
+                                 Range = 1..5
+                                 --- ELEMENT TYPE ---
+                                 Type form = scalar, Type id = real
+                                 5 elements
+why              018 027
+                                 Defined as: type
+                                 Scope nesting level: 1
+                                 Type form = enumeration, Type id = why
+                                 --- Enumeration constants ---
+                                   singularmatrix = 0
+                                          zerorow = 1
+                                    noconvergence = 2
+z                024 239 242
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = array, Type id = matrix
+zerorow          018 032 074
+                                 Defined as: enumeration constant
+                                 Scope nesting level: 1
+                                 Type form = enumeration, Type id = why
+                                 Value = 1
+
+*** PROCEDURE singular ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+w                027 030
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = enumeration, Type id = why
+
+*** FUNCTION abs ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+abs              041
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+x                037 040 040 040 041
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+
+*** PROCEDURE decompose ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+a                044 064
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+biggest          054 081 089 090 095
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+i                053 059 060 060 064 064 067 067 071 073 084 087 087 091 108 109 110 116 116
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+j                053 063 064 064 067 067 100 102 115 116 116 117
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+k                053 079 084 087 097 100 101 105 105 108 109 110 115 117
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+lu               044 064 067 067 087 105 109 110 116 116 117 125
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+mult             054 109 110 112 117
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+n                044 059 063 079 084 108 115 125 125
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+normrow          054 061 067 067 071 071
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+pivot            054 105 109
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+pivotindex       053 080 091 097 101 102
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+scales           052 071 073 087
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = vector
+size             054 087 089 090
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+
+*** PROCEDURE solve ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+b                128 144
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = vector
+dot              134 140 142 142 144 149 151 151 153
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+i                133 139 141 142 144 144 148 150 151 153 153 153 153
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+j                133 141 142 142 150 151 151
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+lu               128 142 151 153
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+n                128 139 148 150
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+x                128 142 144 151 153 153
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = vector
+
+*** PROCEDURE invert ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+a                157 168
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+ainv             157 178
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+b                164 172 173 176
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = vector
+i                165 171 172 172 173 178 178 178
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+j                165 170 172 178
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+lu               163 168 176
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+n                157 168 170 171 176 178
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+x                164 176 178
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = vector
+
+*** PROCEDURE multiply ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+a                182 196
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+b                182 196
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+i                187 191 196 199
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+j                187 192 196 199
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+k                187 195 196 196
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+n                182 191 192 195
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+p                182 199
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+sum              188 193 196 196 199
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+
+*** PROCEDURE printmatrix ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+i                207 211 212
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+j                207 212 212
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+m                204 212
+                                 Defined as: reference parameter
+                                 Scope nesting level: 2
+                                 Type form = array, Type id = matrix
+
+PASS 3 Compilation: Object file "Hilbert.j" created.

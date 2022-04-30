@@ -1,0 +1,95 @@
+001 PROGRAM Newton3;
+002 
+003 VAR
+004     number : integer;
+005 
+006 FUNCTION root(x : real) : real;
+007     VAR
+008         r, prev, diff : real;
+009 
+010     BEGIN
+011         r := 1;
+012         prev := 0;
+013         
+014         REPEAT
+015             r := (x/r + r)/2;
+016             diff := r - prev;
+017             IF diff < 0 THEN diff := -diff;
+018             prev := r
+019         UNTIL diff < 1.01e-10;
+020         
+021         root := r
+022     END;
+023 
+024 PROCEDURE print(n : integer; root : real);
+025     BEGIN
+026         writeln('The square root of ', n:4, ' is ', root:8:4)
+027     END;
+028 
+029 BEGIN
+030     FOR number := 1 TO 25 DO BEGIN
+031         print(number, root(number))
+032     END
+033 END.
+
+PASS 1 Syntax: There were no syntax errors.
+
+PASS 2 Semantics:
+
+===== CROSS-REFERENCE TABLE =====
+
+*** PROGRAM Newton3 ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+number           004 030 031 031
+                                 Defined as: variable
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = integer
+print           
+                                 Defined as: PROCEDURE
+                                 Scope nesting level: 1
+root            
+                                 Defined as: FUNCTION
+                                 Scope nesting level: 1
+                                 Type form = scalar, Type id = real
+
+*** FUNCTION root ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+diff             008 019 016 017 017 017
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+prev             008 012 016 018
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+r                008 011 015 015 015 016 018 021
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+root             021
+                                 Defined as: variable
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+x                006 015
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+
+*** PROCEDURE print ***
+
+Identifier       Line numbers    Type specification
+----------       ------------    ------------------
+n                024 026
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = integer
+root             024 026
+                                 Defined as: value parameter
+                                 Scope nesting level: 2
+                                 Type form = scalar, Type id = real
+
+PASS 3 Compilation: Object file "Newton3.j" created.
